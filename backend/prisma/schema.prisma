@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modèle pour les utilisateurs
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String   // Hash bcrypt
+  firstName String?
+  lastName  String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  designs   Design[]
+  orders    Order[]
+
+  @@map("users")
+}
+
+// Enum pour les rôles
+enum Role {
+  USER
+  ADMIN
+}
+
+// Modèle pour les produits (t-shirts de base)
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  basePrice   Float    // Prix de base du t-shirt
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // URLs des mockups pour prévisualisation
+  mockupFrontUrl String?
+  mockupBackUrl  String?
+
+  // Relations
+  designs    Design[]
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+// Modèle pour les designs créés par les utilisateurs
+model Design {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  
+  // Données JSON de Fabric.js pour chaque face
+  frontDesignJson String  @db.Text // Canvas devant
+  backDesignJson  String? @db.Text // Canvas dos (optionnel)
+  
+  // URLs des images de prévisualisation générées
+  frontPreviewUrl String?
+  backPreviewUrl  String?
+  
+  // Métadonnées
+  name      String?  // Nom du design (optionnel)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product    Product     @relation(fields: [productId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("designs")
+}
+
+// Modèle pour les commandes
+model Order {
+  id              Int         @id @default(autoincrement())
+  userId          Int
+  totalPrice      Float
+  status          OrderStatus @default(PENDING)
+  
+  // Informations de livraison
+  shippingAddress String
+  shippingCity    String
+  shippingZip     String
+  shippingCountry String
+  
+  // Informations de paiement
+  stripePaymentId String?     @unique
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("orders")
+}
+
+// Enum pour les statuts de commande
+enum OrderStatus {
+  PENDING    // En attente de paiement
+  PAID       // Payée
+  PROCESSING // En cours de traitement
+  SHIPPED    // Expédiée
+  DELIVERED  // Livrée
+  CANCELLED  // Annulée
+}
+
+// Modèle pour les articles d'une commande
+model OrderItem {
+  id        Int    @id @default(autoincrement())
+  orderId   Int
+  designId  Int
+  productId Int
+  
+  // Détails de l'article
+  size      String // S, M, L, XL, XXL
+  color     String // noir, blanc
+  quantity  Int    @default(1)
+  unitPrice Float  // Prix unitaire au moment de la commande
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  design  Design  @relation(fields: [designId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
