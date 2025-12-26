@@ -50,12 +50,12 @@ app.get('/api/health', async (req, res) => {
 
 // Importer les routes
 const authRoutes = require('./routes/authRoutes');
-// const productRoutes = require('./routes/productRoutes');
+const productRoutes = require('./routes/productRoutes');
 // const designRoutes = require('./routes/designRoutes');
 // const orderRoutes = require('./routes/orderRoutes');
 
 app.use('/api/auth', authRoutes);
-// app.use('/api/products', productRoutes);
+app.use('/api/products', productRoutes);
 // app.use('/api/designs', designRoutes);
 // app.use('/api/orders', orderRoutes);
 
