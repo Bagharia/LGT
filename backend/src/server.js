@@ -48,13 +48,13 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// TODO: Importer et utiliser les routes
-// const authRoutes = require('./routes/authRoutes');
+// Importer les routes
+const authRoutes = require('./routes/authRoutes');
 // const productRoutes = require('./routes/productRoutes');
 // const designRoutes = require('./routes/designRoutes');
 // const orderRoutes = require('./routes/orderRoutes');
 
-// app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 // app.use('/api/products', productRoutes);
 // app.use('/api/designs', designRoutes);
 // app.use('/api/orders', orderRoutes);
@@ -93,7 +93,7 @@ process.on('SIGINT', async () => {
 });
 
 process.on('SIGTERM', async () => {
-  console.log('\n🛑Arrêt du serveur...');
+  console.log('\nArrêt du serveur...');
   await prisma.$disconnect();
   process.exit(0);
 });
