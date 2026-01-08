@@ -137,7 +137,7 @@ export const designsAPI = {
 
   // Récupérer les designs de l'utilisateur
   getMy: async () => {
-    const response = await api.get('/designs/my');
+    const response = await api.get('/designs');
     return response.data;
   },
 

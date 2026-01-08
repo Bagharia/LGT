@@ -40,7 +40,7 @@ const Home = () => {
               Voir les Produits
             </Link>
             <Link
-              to="/register"
+              to="/my-designs"
               className="px-8 py-4 bg-gray-800 text-white rounded-lg font-bold text-lg hover:bg-gray-700 transition-colors border-2 border-white"
             >
               Commencer Maintenant
@@ -162,7 +162,7 @@ const Home = () => {
           Rejoignez des milliers de clients satisfaits et créez votre design dès maintenant
         </p>
         <Link
-          to="/products"
+          to="/my-designs"
           className="inline-block px-8 py-4 bg-white text-black rounded-lg font-bold text-lg hover:bg-gray-200 transition-colors shadow-lg"
         >
           Commencer la Création

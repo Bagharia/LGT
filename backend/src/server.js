@@ -51,12 +51,12 @@ app.get('/api/health', async (req, res) => {
 // Importer les routes
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
-// const designRoutes = require('./routes/designRoutes');
+const designRoutes = require('./routes/designRoutes');
 // const orderRoutes = require('./routes/orderRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
-// app.use('/api/designs', designRoutes);
+app.use('/api/designs', designRoutes);
 // app.use('/api/orders', orderRoutes);
 
 // Gestion des erreurs 404
@@ -83,6 +83,9 @@ app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);
   console.log(`URL: http://localhost:${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/api/health`);
+  console.log(`Auth routes: http://localhost:${PORT}/api/auth`);
+  console.log(`Product routes: http://localhost:${PORT}/api/products`);
+  console.log(`Design routes: http://localhost:${PORT}/api/designs`);
 });
 
 // Gestion propre de l'arrêt du serveur

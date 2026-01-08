@@ -40,20 +40,19 @@ const Register = () => {
 
     setLoading(true);
 
-    const result = await register(
-      formData.email,
-      formData.password,
-      formData.firstName,
-      formData.lastName
-    );
-
-    if (result.success) {
+    try {
+      await register({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName
+      });
       navigate('/');
-    } else {
-      setError(result.error);
+    } catch (error) {
+      setError(error.response?.data?.error || 'Erreur lors de l\'inscription');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
