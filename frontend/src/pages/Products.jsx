@@ -24,7 +24,7 @@ const Products = () => {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">Nos Produits</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Nos Produits</h1>
         <p className="text-xl text-gray-600">
           Choisissez votre t-shirt et personnalisez-le selon vos envies
         </p>
@@ -32,14 +32,14 @@ const Products = () => {
 
       {loading ? (
         <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-black mx-auto"></div>
           <p className="mt-4 text-gray-600">Chargement des produits...</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {products.map((product) => (
-            <div key={product.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow">
-              <div className="aspect-square bg-gray-200 flex items-center justify-center">
+            <div key={product.id} className="bg-white rounded-xl border-2 border-black shadow-md overflow-hidden hover:shadow-2xl transition-shadow">
+              <div className="aspect-square bg-gray-100 flex items-center justify-center border-b-2 border-black">
                 {product.mockupFrontUrl ? (
                   <img
                     src={product.mockupFrontUrl}
@@ -53,17 +53,17 @@ const Products = () => {
                 )}
               </div>
               <div className="p-6">
-                <h3 className="font-bold text-xl mb-2 text-gray-800">{product.name}</h3>
+                <h3 className="font-bold text-xl mb-2 text-gray-900">{product.name}</h3>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                   {product.description}
                 </p>
                 <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-primary-600">
+                  <span className="text-2xl font-bold text-black">
                     {product.basePrice.toFixed(2)}€
                   </span>
                   <Link
                     to={`/editor/${product.id}`}
-                    className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+                    className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
                   >
                     Personnaliser
                   </Link>
@@ -75,7 +75,7 @@ const Products = () => {
       )}
 
       {!loading && products.length === 0 && (
-        <div className="text-center py-12 bg-gray-100 rounded-xl">
+        <div className="text-center py-12 bg-gray-100 rounded-xl border-2 border-gray-300">
           <p className="text-gray-600 text-lg">Aucun produit disponible pour le moment.</p>
         </div>
       )}

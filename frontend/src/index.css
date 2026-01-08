@@ -2,3 +2,261 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  /* Auth Pages Styles */
+  .auth-container {
+    @apply min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4;
+  }
+
+  .auth-card {
+    @apply max-w-md w-full bg-white rounded-xl shadow-lg p-8 border-2 border-black;
+  }
+
+  .auth-card h1 {
+    @apply text-3xl font-bold text-gray-900 mb-2 text-center;
+  }
+
+  .auth-subtitle {
+    @apply text-gray-600 text-center mb-6;
+  }
+
+  .auth-form {
+    @apply space-y-4;
+  }
+
+  .form-row {
+    @apply grid grid-cols-2 gap-4;
+  }
+
+  .form-group {
+    @apply space-y-2;
+  }
+
+  .form-group label {
+    @apply block text-sm font-medium text-gray-700;
+  }
+
+  .form-group input {
+    @apply w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black transition-colors;
+  }
+
+  .form-group input:disabled {
+    @apply bg-gray-100 cursor-not-allowed;
+  }
+
+  .btn-submit {
+    @apply w-full py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6;
+  }
+
+  .error-message {
+    @apply bg-red-50 border-2 border-red-500 text-red-700 px-4 py-3 rounded-lg mb-4;
+  }
+
+  .auth-footer {
+    @apply text-center text-gray-600 mt-6;
+  }
+
+  .auth-link {
+    @apply text-black font-semibold hover:underline;
+  }
+
+  /* ========================================
+     EDITOR LAYOUT - Structure Spreadshirt
+     ======================================== */
+
+  .editor-layout {
+    @apply w-full h-screen bg-gray-50 overflow-hidden;
+  }
+
+  .editor-container {
+    @apply flex h-full;
+  }
+
+  /* Div Toggle - Barre de gauche */
+  .editor-toggle-left {
+    @apply w-20 bg-white border-r border-gray-200 flex flex-col py-4 flex-shrink-0;
+  }
+
+  .toggle-btn {
+    @apply flex flex-col items-center justify-center py-4 px-2 hover:bg-gray-100 transition-colors cursor-pointer text-gray-600 hover:text-black text-xs;
+  }
+
+  .toggle-btn.active {
+    @apply bg-gray-100 text-black border-l-4 border-cyan-500;
+  }
+
+  .toggle-btn svg {
+    @apply w-7 h-7 mb-1;
+  }
+
+  /* Div SVG T-Shirt - Centre */
+  .editor-svg-tshirt {
+    @apply flex-1 flex flex-col bg-gray-100 overflow-hidden;
+  }
+
+  .tshirt-container {
+    @apply flex-1 flex items-center justify-center p-8;
+  }
+
+  /* Onglets T-Shirt en bas */
+  .tshirt-tabs {
+    @apply flex gap-3 justify-center py-6 bg-white border-t border-gray-200;
+  }
+
+  .tshirt-tab {
+    @apply flex flex-col items-center gap-2 px-4 py-2 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors;
+  }
+
+  .tshirt-tab.active {
+    @apply bg-gray-100;
+  }
+
+  .tshirt-tab .tab-preview {
+    @apply w-16 h-20 border-2 border-gray-300 rounded bg-white;
+  }
+
+  .tshirt-tab.active .tab-preview {
+    @apply border-cyan-500 border-4;
+  }
+
+  .tshirt-tab span {
+    @apply text-xs text-gray-700 font-medium;
+  }
+
+  /* Div Panel - Panneau de droite */
+  .editor-panel-right {
+    @apply w-96 bg-white border-l border-gray-200 overflow-y-auto flex-shrink-0;
+  }
+
+  /* Right Panel Styles */
+  .spreadshirt-right-panel {
+    @apply w-full h-full flex flex-col;
+  }
+
+  .top-action-bar {
+    @apply flex items-center justify-end gap-4 p-4 pb-4 border-b border-gray-200;
+  }
+
+  .action-icon-btn {
+    @apply flex flex-col items-center gap-1 text-xs text-gray-600 hover:text-black cursor-pointer;
+  }
+
+  .action-icon-btn svg {
+    @apply w-6 h-6;
+  }
+
+  .color-option {
+    @apply w-10 h-10 rounded-full border-2 border-gray-300 cursor-pointer hover:scale-110 transition-transform relative;
+  }
+
+  .color-option.selected::after {
+    content: '✓';
+    @apply absolute inset-0 flex items-center justify-center text-white text-xl font-bold;
+  }
+
+  .color-option.selected {
+    @apply border-4 border-black;
+  }
+
+  .product-detail-section {
+    @apply mb-6 pb-6 border-b border-gray-200;
+  }
+
+  .product-detail-section h3 {
+    @apply text-sm font-bold text-gray-700 mb-3;
+  }
+
+  .product-badge {
+    @apply inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 px-2 py-1 rounded-full mb-2;
+  }
+
+  .product-link {
+    @apply text-cyan-600 text-sm font-medium hover:underline cursor-pointer;
+  }
+
+  .size-quantity-btn {
+    @apply w-full py-3 bg-cyan-500 text-white rounded-md font-semibold hover:bg-cyan-600 transition-colors;
+  }
+
+  /* Toolbar Sections */
+  .toolbar-section {
+    @apply p-6 border-b border-gray-200;
+  }
+
+  .toolbar-section h3 {
+    @apply text-lg font-bold text-gray-900 mb-4;
+  }
+
+  .toolbar-button {
+    @apply w-full px-4 py-3 bg-white border-2 border-gray-300 rounded-lg hover:border-black hover:bg-gray-50 transition-all font-medium text-gray-700 flex items-center justify-center gap-2 mb-3;
+  }
+
+  .toolbar-button:hover {
+    @apply border-black bg-gray-50;
+  }
+
+  .toolbar-button.active {
+    @apply border-black bg-black text-white;
+  }
+
+  .property-group {
+    @apply mb-4;
+  }
+
+  .property-label {
+    @apply block text-sm font-medium text-gray-700 mb-2;
+  }
+
+  .property-input {
+    @apply w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black transition-colors;
+  }
+
+  .property-slider {
+    @apply w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer;
+  }
+
+  .color-grid {
+    @apply grid grid-cols-5 gap-2;
+  }
+
+  .color-swatch {
+    @apply w-10 h-10 rounded-lg border-2 border-gray-300 cursor-pointer hover:scale-110 transition-transform;
+  }
+
+  .color-swatch.active {
+    @apply border-black ring-2 ring-black ring-offset-2;
+  }
+
+  /* Canvas Styles */
+  .canvas-bg-grid {
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .view-tabs {
+    @apply flex gap-2 justify-center mb-6;
+  }
+
+  .view-tab {
+    @apply px-6 py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer;
+  }
+
+  .view-tab.active {
+    @apply bg-black text-white;
+  }
+
+  .view-tab:not(.active) {
+    @apply bg-white text-gray-700 border-2 border-gray-300 hover:border-black;
+  }
+
+  /* Action Buttons */
+  .action-btn-primary {
+    @apply px-6 py-3 bg-black text-white rounded-lg font-semibold hover:bg-gray-800 transition-colors;
+  }
+
+  .action-btn-secondary {
+    @apply px-6 py-3 bg-white text-black border-2 border-black rounded-lg font-semibold hover:bg-gray-100 transition-colors;
+  }
+}

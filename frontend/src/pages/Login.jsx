@@ -16,15 +16,14 @@ const Login = () => {
     setError('');
     setLoading(true);
 
-    const result = await login(email, password);
-
-    if (result.success) {
+    try {
+      await login({ email, password });
       navigate('/');
-    } else {
-      setError(result.error);
+    } catch (error) {
+      setError(error.response?.data?.error || 'Erreur de connexion');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
