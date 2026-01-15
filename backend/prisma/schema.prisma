@@ -67,14 +67,20 @@ model Design {
   backPreviewUrl  String?
   
   // Métadonnées
-  name      String?  // Nom du design (optionnel)
+  name        String?  // Nom du design (optionnel)
+  quantities  Json?    // Quantités par taille {XS: 1, S: 2, M: 1, ...}
+  totalPrice  Float?   // Prix total avant réduction
+  finalPrice  Float?   // Prix final après réduction
+  tshirtColor String?  // Couleur du t-shirt (#FFFFFF, #000000, etc.)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Relations
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product    Product     @relation(fields: [productId], references: [id])
-  orderItems OrderItem[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product      Product       @relation(fields: [productId], references: [id])
+  orderItems   OrderItem[]
+  orderDesigns OrderDesign[]
 
   @@map("designs")
 }
@@ -99,8 +105,9 @@ model Order {
   updatedAt       DateTime    @updatedAt
 
   // Relations
-  user       User        @relation(fields: [userId], references: [id])
-  orderItems OrderItem[]
+  user         User          @relation(fields: [userId], references: [id])
+  orderItems   OrderItem[]
+  orderDesigns OrderDesign[]
 
   @@map("orders")
 }
@@ -115,13 +122,29 @@ enum OrderStatus {
   CANCELLED  // Annulée
 }
 
+// Modèle pour la relation entre Order et Design avec quantités
+model OrderDesign {
+  id         Int      @id @default(autoincrement())
+  orderId    Int
+  designId   Int
+  quantities Json     // Stocke les quantités par taille {XS: 1, S: 2, M: 1, ...}
+  finalPrice Float    // Prix final pour ce design dans cette commande
+  createdAt  DateTime @default(now())
+
+  // Relations
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  design Design @relation(fields: [designId], references: [id])
+
+  @@map("order_designs")
+}
+
 // Modèle pour les articles d'une commande
 model OrderItem {
   id        Int    @id @default(autoincrement())
   orderId   Int
   designId  Int
   productId Int
-  
+
   // Détails de l'article
   size      String // S, M, L, XL, XXL
   color     String // noir, blanc

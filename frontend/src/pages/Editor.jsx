@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { productsAPI, designsAPI } from '../services/api';
+import { productsAPI, designsAPI, ordersAPI } from '../services/api';
 import DesignCanvas from '../components/DesignEditor/Canvas';
 import RightPanel from '../components/DesignEditor/RightPanel';
 import * as fabric from 'fabric';
@@ -146,25 +146,57 @@ const Editor = () => {
       const frontPreview = frontCanvas.toDataURL({ format: 'png' });
       const backPreview = backCanvas ? backCanvas.toDataURL({ format: 'png' }) : null;
 
-      await designsAPI.save({
-        productId: parseInt(productId),
-        frontDesignJson: frontJson,
-        backDesignJson: backJson,
-        frontPreviewUrl: frontPreview,
-        backPreviewUrl: backPreview,
-        name: `Design ${new Date().toLocaleDateString()}`,
-        quantities: quantities,
-        totalPrice: totalPrice,
-        finalPrice: finalPrice,
-        tshirtColor: tshirtColor
+      const designId = searchParams.get('designId');
+
+      let finalDesignId;
+
+      // Si on modifie un design existant, le mettre à jour
+      if (designId) {
+        await designsAPI.update(designId, {
+          frontDesignJson: frontJson,
+          backDesignJson: backJson,
+          frontPreviewUrl: frontPreview,
+          backPreviewUrl: backPreview,
+          name: `Design ${new Date().toLocaleDateString()}`,
+          quantities: quantities,
+          totalPrice: totalPrice,
+          finalPrice: finalPrice,
+          tshirtColor: tshirtColor
+        });
+        finalDesignId = parseInt(designId);
+      } else {
+        // Sinon, créer un nouveau design
+        const savedDesign = await designsAPI.save({
+          productId: parseInt(productId),
+          frontDesignJson: frontJson,
+          backDesignJson: backJson,
+          frontPreviewUrl: frontPreview,
+          backPreviewUrl: backPreview,
+          name: `Design ${new Date().toLocaleDateString()}`,
+          quantities: quantities,
+          totalPrice: totalPrice,
+          finalPrice: finalPrice,
+          tshirtColor: tshirtColor
+        });
+        finalDesignId = savedDesign.design.id;
+      }
+
+      // Créer une nouvelle commande avec ce design (modification ou nouveau)
+      await ordersAPI.create({
+        designs: [{
+          designId: finalDesignId,
+          quantities: quantities,
+          finalPrice: finalPrice
+        }],
+        totalPrice: finalPrice
       });
 
-      alert('Design sauvegardé avec succès !');
-      navigate('/my-designs');
+      alert('Commande créée avec succès !');
+      navigate('/my-orders');
 
     } catch (error) {
       console.error('Erreur:', error);
-      alert(error.response?.data?.error || 'Erreur lors de la sauvegarde du design');
+      alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
     } finally {
       setSaving(false);
     }
