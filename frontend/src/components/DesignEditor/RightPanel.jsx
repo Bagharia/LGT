@@ -9,6 +9,16 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, savi
   const [selectedObject, setSelectedObject] = useState(null);
   const [curveValue, setCurveValue] = useState(0);
 
+  // États pour les tailles et quantités
+  const [quantities, setQuantities] = useState({
+    XS: 0,
+    S: 0,
+    M: 0,
+    L: 0,
+    XL: 0,
+    XXL: 0
+  });
+
   const colors = [
     '#FFFFFF', '#F5F5DC', '#000000', '#2F4F4F',
     '#1E3A8A', '#064E3B', '#15803D', '#A3E635',
@@ -227,28 +237,105 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, savi
 
   // Upload image
   const handleImageUpload = (e) => {
-    if (!canvas) return;
+    if (!canvas) {
+      console.error('Canvas not ready');
+      return;
+    }
 
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
-      fabric.Image.fromURL(event.target.result, (img) => {
+    reader.onload = async (event) => {
+      try {
+        const img = await fabric.FabricImage.fromURL(event.target.result, {
+          crossOrigin: 'anonymous'
+        });
+
+        // Centrer l'image dans la zone imprimable
+        const printAreaBounds = {
+          left: 130,
+          top: 80,
+          width: 240,
+          height: 320,
+        };
+
+        // Calculer l'échelle pour que l'image tienne dans la zone
+        const maxWidth = printAreaBounds.width;
+        const maxHeight = printAreaBounds.height;
+        const scaleX = maxWidth / img.width;
+        const scaleY = maxHeight / img.height;
+        const scale = Math.min(scaleX, scaleY, 1) * 0.5; // 50% de la taille max
+
+        // Calculer la position pour centrer l'image (avec originX/Y par défaut = left/top)
+        const scaledWidth = img.width * scale;
+        const scaledHeight = img.height * scale;
+        const centerLeft = printAreaBounds.left + (printAreaBounds.width - scaledWidth) / 2;
+        const centerTop = printAreaBounds.top + (printAreaBounds.height - scaledHeight) / 2;
+
         img.set({
-          left: 200,
-          top: 250,
-          scaleX: 0.5,
-          scaleY: 0.5,
+          left: centerLeft,
+          top: centerTop,
+          scaleX: scale,
+          scaleY: scale,
+          lockScalingFlip: true, // Empêcher le flip lors du scaling
+          lockUniScaling: false, // Permettre le scaling uniforme
+        });
+
+        // Forcer le redimensionnement proportionnel uniquement
+        img.setControlsVisibility({
+          mt: false, // Pas de contrôle en haut
+          mb: false, // Pas de contrôle en bas
+          ml: false, // Pas de contrôle à gauche
+          mr: false, // Pas de contrôle à droite
+          // Garder seulement les coins pour un redimensionnement proportionnel
+          tl: true,  // Coin haut-gauche
+          tr: true,  // Coin haut-droit
+          bl: true,  // Coin bas-gauche
+          br: true,  // Coin bas-droit
+          mtr: true, // Contrôle de rotation
         });
 
         canvas.add(img);
         canvas.setActiveObject(img);
         canvas.renderAll();
-      });
+      } catch (error) {
+        console.error('Error loading image:', error);
+      }
     };
+
+    reader.onerror = (error) => {
+      console.error('Error reading file:', error);
+    };
+
     reader.readAsDataURL(file);
   };
+
+  // Gérer les changements de quantité
+  const updateQuantity = (size, delta) => {
+    setQuantities(prev => ({
+      ...prev,
+      [size]: Math.max(0, prev[size] + delta)
+    }));
+  };
+
+  // Gérer la saisie directe de la quantité
+  const handleQuantityInput = (size, value) => {
+    const num = parseInt(value) || 0;
+    setQuantities(prev => ({
+      ...prev,
+      [size]: Math.max(0, num)
+    }));
+  };
+
+  // Calculer le total d'articles et prix
+  const totalArticles = Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
+  const pricePerItem = 35.99;
+  const totalPrice = totalArticles * pricePerItem;
+
+  // Appliquer réduction si >= 6 articles
+  const discount = totalArticles >= 6 ? 0.10 : 0;
+  const finalPrice = totalPrice * (1 - discount);
 
   return (
     <div className="spreadshirt-right-panel">
@@ -383,18 +470,196 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, savi
 
             {/* Color Palette */}
             <div>
-              <label className="text-sm font-medium block mb-2">Couleur</label>
-              <div className="grid grid-cols-5 gap-2">
-                {colors.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => changeTextColor(color)}
-                    className={`w-full h-10 rounded-full border-2 ${
-                      textColor === color ? 'border-black ring-2 ring-black' : 'border-gray-300'
-                    }`}
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
+              <label className="text-sm font-medium block mb-3">Couleur</label>
+
+              {/* Palette de couleurs prédéfinies */}
+              <div className="grid grid-cols-7 gap-2 mb-4">
+                {/* Première ligne */}
+                <button
+                  onClick={() => changeTextColor('#FFFFFF')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#FFFFFF' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#FFFFFF' }}
+                  title="Blanc"
+                />
+                <button
+                  onClick={() => changeTextColor('#000000')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#000000' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#000000' }}
+                  title="Noir"
+                />
+                <button
+                  onClick={() => changeTextColor('#1E3A8A')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#1E3A8A' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#1E3A8A' }}
+                  title="Bleu marine"
+                />
+                <button
+                  onClick={() => changeTextColor('#0EA5E9')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#0EA5E9' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#0EA5E9' }}
+                  title="Bleu ciel"
+                />
+                <button
+                  onClick={() => changeTextColor('#EAB308')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#EAB308' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#EAB308' }}
+                  title="Jaune"
+                />
+                <button
+                  onClick={() => changeTextColor('#F59E0B')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#F59E0B' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#F59E0B' }}
+                  title="Orange"
+                />
+                <button
+                  onClick={() => changeTextColor('#DC2626')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#DC2626' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#DC2626' }}
+                  title="Rouge"
+                />
+
+                {/* Deuxième ligne */}
+                <button
+                  onClick={() => changeTextColor('#059669')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#059669' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#059669' }}
+                  title="Vert émeraude"
+                />
+                <button
+                  onClick={() => changeTextColor('#1E40AF')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#1E40AF' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#1E40AF' }}
+                  title="Bleu foncé"
+                />
+                <button
+                  onClick={() => changeTextColor('#EA580C')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#EA580C' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#EA580C' }}
+                  title="Orange foncé"
+                />
+                <button
+                  onClick={() => changeTextColor('#BE185D')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#BE185D' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#BE185D' }}
+                  title="Rose foncé"
+                />
+                <button
+                  onClick={() => changeTextColor('#78350F')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#78350F' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#78350F' }}
+                  title="Marron"
+                />
+                <button
+                  onClick={() => changeTextColor('#6B21A8')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#6B21A8' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#6B21A8' }}
+                  title="Violet"
+                />
+                <button
+                  onClick={() => changeTextColor('#0E7490')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#0E7490' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#0E7490' }}
+                  title="Cyan foncé"
+                />
+
+                {/* Troisième ligne */}
+                <button
+                  onClick={() => changeTextColor('#7C2D12')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#7C2D12' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#7C2D12' }}
+                  title="Marron foncé"
+                />
+                <button
+                  onClick={() => changeTextColor('#F5F5DC')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#F5F5DC' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#F5F5DC' }}
+                  title="Beige"
+                />
+                <button
+                  onClick={() => changeTextColor('#FCA5A5')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#FCA5A5' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#FCA5A5' }}
+                  title="Rose clair"
+                />
+                <button
+                  onClick={() => changeTextColor('#BAE6FD')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#BAE6FD' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#BAE6FD' }}
+                  title="Bleu clair"
+                />
+                <button
+                  onClick={() => changeTextColor('#DDD6FE')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#DDD6FE' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#DDD6FE' }}
+                  title="Violet clair"
+                />
+                <button
+                  onClick={() => changeTextColor('#BEF264')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#BEF264' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#BEF264' }}
+                  title="Vert citron"
+                />
+                <button
+                  onClick={() => changeTextColor('#6B7280')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#6B7280' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#6B7280' }}
+                  title="Gris"
+                />
+
+                {/* Quatrième ligne */}
+                <button
+                  onClick={() => changeTextColor('#92400E')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#92400E' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#92400E' }}
+                  title="Brun"
+                />
+                <button
+                  onClick={() => changeTextColor('#84CC16')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#84CC16' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#84CC16' }}
+                  title="Vert lime"
+                />
+                <button
+                  onClick={() => changeTextColor('#EC4899')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#EC4899' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#EC4899' }}
+                  title="Rose"
+                />
+                <button
+                  onClick={() => changeTextColor('#8B5CF6')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#8B5CF6' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#8B5CF6' }}
+                  title="Violet moyen"
+                />
+                <button
+                  onClick={() => changeTextColor('#06B6D4')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#06B6D4' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#06B6D4' }}
+                  title="Cyan"
+                />
+                <button
+                  onClick={() => changeTextColor('#10B981')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#10B981' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#10B981' }}
+                  title="Vert"
+                />
+                <button
+                  onClick={() => changeTextColor('#F97316')}
+                  className={`w-10 h-10 rounded-full border-2 ${textColor === '#F97316' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                  style={{ backgroundColor: '#F97316' }}
+                  title="Orange vif"
+                />
+              </div>
+
+              {/* Sélecteur de couleur personnalisé */}
+              <div className="mt-2">
+                <label className="text-xs text-gray-600 mb-2 block">Couleur personnalisée:</label>
+                <input
+                  type="color"
+                  value={textColor}
+                  onChange={(e) => changeTextColor(e.target.value)}
+                  className="w-full h-10 rounded border-2 border-gray-300 cursor-pointer"
+                />
               </div>
             </div>
 
@@ -482,17 +747,19 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, savi
 
           {/* Color Selection */}
           <div className="border-t pt-6">
-            <h3 className="text-sm font-semibold mb-3">Couleur du produit: {tshirtColor === '#FFFFFF' ? 'blanc' : 'noir'}</h3>
+            <h3 className="text-sm font-semibold mb-3">Couleur du produit</h3>
             <div className="flex gap-3">
               <button
                 onClick={() => setTshirtColor('#FFFFFF')}
-                className={`color-option ${tshirtColor === '#FFFFFF' ? 'selected' : ''}`}
-                style={{ backgroundColor: '#FFFFFF', border: '2px solid #ddd' }}
+                className={`w-12 h-12 rounded-full border-2 ${tshirtColor === '#FFFFFF' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
+                style={{ backgroundColor: '#FFFFFF' }}
+                title="Blanc"
               />
               <button
                 onClick={() => setTshirtColor('#000000')}
-                className={`color-option ${tshirtColor === '#000000' ? 'selected' : ''}`}
+                className={`w-12 h-12 rounded-full border-2 ${tshirtColor === '#000000' ? 'ring-2 ring-cyan-500 border-cyan-500' : 'border-gray-300'}`}
                 style={{ backgroundColor: '#000000' }}
+                title="Noir"
               />
             </div>
           </div>
@@ -500,9 +767,86 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, savi
           {/* Size & Quantity Button */}
           <button
             className="size-quantity-btn"
-            onClick={() => setActiveToolSection(null)}
+            onClick={() => setActiveToolSection('size-quantity')}
           >
             Choisir la quantité & taille
+          </button>
+        </div>
+      )}
+
+      {/* Size & Quantity Selection Section */}
+      {activeToolSection === 'size-quantity' && (
+        <div className="p-6 space-y-6">
+          <h2 className="text-xl font-bold mb-6">Choisir la taille</h2>
+
+          {/* Size selection with quantity controls */}
+          <div className="space-y-4">
+            {Object.keys(quantities).map(size => (
+              <div key={size} className="flex items-center justify-between py-3 border-b">
+                <span className="font-medium text-lg">{size}</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => updateQuantity(size, -1)}
+                    className="w-10 h-10 flex items-center justify-center border-2 border-gray-300 rounded hover:bg-gray-100"
+                    disabled={quantities[size] === 0}
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    min="0"
+                    value={quantities[size]}
+                    onChange={(e) => handleQuantityInput(size, e.target.value)}
+                    className="w-16 text-center font-medium text-lg border-2 border-gray-300 rounded px-2 py-1"
+                  />
+                  <button
+                    onClick={() => updateQuantity(size, 1)}
+                    className="w-10 h-10 flex items-center justify-center border-2 border-gray-300 rounded hover:bg-gray-100"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Price info */}
+          <div className="border-t pt-4 space-y-2">
+            <div className="flex justify-between">
+              <span className="font-semibold">Prix de l'article:</span>
+              <span className="font-semibold">{pricePerItem.toFixed(2)} €</span>
+            </div>
+            {totalArticles >= 6 && (
+              <p className="text-sm text-green-600 font-medium">
+                Dès 6 articles, 10% de réduction
+              </p>
+            )}
+          </div>
+
+          {/* Summary */}
+          <div className="border-t pt-4">
+            <p className="text-sm text-gray-600 mb-3">
+              {totalArticles} article{totalArticles > 1 ? 's' : ''} sélectionné{totalArticles > 1 ? 's' : ''}
+            </p>
+            <div className="text-2xl font-bold mb-4">
+              Total: {finalPrice.toFixed(2)} €
+            </div>
+            <p className="text-xs text-gray-500 mb-4">
+              TTC (EU), coûts d'impression inclus, hors frais de port
+            </p>
+          </div>
+
+          {/* Add to cart button */}
+          <button
+            className={`w-full py-4 rounded-lg font-semibold text-lg ${
+              totalArticles > 0
+                ? 'bg-cyan-400 hover:bg-cyan-500 text-white'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+            onClick={() => onSave(quantities, totalPrice, finalPrice)}
+            disabled={totalArticles === 0 || saving}
+          >
+            {saving ? 'Enregistrement...' : 'Ajouter au panier'}
           </button>
         </div>
       )}

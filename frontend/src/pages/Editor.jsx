@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { productsAPI, designsAPI } from '../services/api';
 import DesignCanvas from '../components/DesignEditor/Canvas';
 import RightPanel from '../components/DesignEditor/RightPanel';
@@ -8,6 +8,7 @@ import * as fabric from 'fabric';
 const Editor = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,6 +18,7 @@ const Editor = () => {
   const [saving, setSaving] = useState(false);
   const [activeToolSection, setActiveToolSection] = useState(null);
   const [tshirtColor, setTshirtColor] = useState('#FFFFFF');
+  const [designLoaded, setDesignLoaded] = useState(false);
 
   // Ajouter du texte automatiquement quand on clique sur le bouton Texte
   const handleTextClick = () => {
@@ -43,6 +45,78 @@ const Editor = () => {
     fetchProduct();
   }, [productId]);
 
+  // Charger le design si un designId est fourni dans l'URL
+  useEffect(() => {
+    const designId = searchParams.get('designId');
+    if (designId && frontCanvas && backCanvas && !designLoaded) {
+      loadDesign(designId);
+      setDesignLoaded(true);
+    }
+  }, [searchParams, frontCanvas, backCanvas, designLoaded]); // Ajouter les canvas pour déclencher le chargement quand ils sont prêts
+
+  const loadDesign = async (designId) => {
+    try {
+      const data = await designsAPI.getById(designId);
+      const design = data.design;
+
+      // Restaurer la couleur du t-shirt
+      if (design.tshirtColor) {
+        setTshirtColor(design.tshirtColor);
+      }
+
+      // Restaurer les objets sur le canvas front (sans le rectangle de zone)
+      if (design.frontDesignJson && frontCanvas) {
+        const frontData = JSON.parse(design.frontDesignJson);
+        const userObjects = frontData.objects.slice(1);
+
+        if (userObjects.length > 0) {
+          for (const objData of userObjects) {
+            if (objData.type === 'i-text' || objData.type === 'text' || objData.type === 'IText') {
+              const { type, ...textProps } = objData;
+              const text = new fabric.IText(objData.text || '', textProps);
+              frontCanvas.add(text);
+            } else if (objData.type === 'image' || objData.type === 'Image') {
+              try {
+                const img = await fabric.FabricImage.fromObject(objData);
+                frontCanvas.add(img);
+              } catch (error) {
+                console.error('Error creating image:', error);
+              }
+            }
+          }
+          frontCanvas.renderAll();
+        }
+      }
+
+      // Restaurer les objets sur le canvas back (sans le rectangle de zone)
+      if (design.backDesignJson && backCanvas) {
+        const backData = JSON.parse(design.backDesignJson);
+        const userObjects = backData.objects.slice(1);
+
+        if (userObjects.length > 0) {
+          for (const objData of userObjects) {
+            if (objData.type === 'i-text' || objData.type === 'text' || objData.type === 'IText') {
+              const { type, ...textProps } = objData;
+              const text = new fabric.IText(objData.text || '', textProps);
+              backCanvas.add(text);
+            } else if (objData.type === 'image' || objData.type === 'Image') {
+              try {
+                const img = await fabric.FabricImage.fromObject(objData);
+                backCanvas.add(img);
+              } catch (error) {
+                console.error('Error creating back image:', error);
+              }
+            }
+          }
+          backCanvas.renderAll();
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement du design:', error);
+      alert('Erreur lors du chargement du design');
+    }
+  };
+
   const fetchProduct = async () => {
     try {
       setLoading(true);
@@ -57,7 +131,7 @@ const Editor = () => {
     }
   };
 
-  const handleSaveDesign = async () => {
+  const handleSaveDesign = async (quantities, totalPrice, finalPrice) => {
     if (!frontCanvas) {
       alert('Aucun design à sauvegarder');
       return;
@@ -78,7 +152,11 @@ const Editor = () => {
         backDesignJson: backJson,
         frontPreviewUrl: frontPreview,
         backPreviewUrl: backPreview,
-        name: `Design ${new Date().toLocaleDateString()}`
+        name: `Design ${new Date().toLocaleDateString()}`,
+        quantities: quantities,
+        totalPrice: totalPrice,
+        finalPrice: finalPrice,
+        tshirtColor: tshirtColor
       });
 
       alert('Design sauvegardé avec succès !');
