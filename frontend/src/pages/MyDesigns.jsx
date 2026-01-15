@@ -98,9 +98,14 @@ const MyDesigns = () => {
               </div>
               <div className="p-4">
                 <h3 className="font-bold text-lg mb-2 text-gray-900">{design.name}</h3>
-                <p className="text-gray-600 text-sm mb-4">
+                <p className="text-gray-600 text-sm mb-2">
                   Créé le {new Date(design.createdAt).toLocaleDateString()}
                 </p>
+                {design.finalPrice && (
+                  <p className="text-green-600 font-semibold text-sm mb-4">
+                    Prix: {design.finalPrice.toFixed(2)} €
+                  </p>
+                )}
                 <div className="flex gap-2">
                   <Link
                     to={`/editor/${design.productId}?designId=${design.id}`}

@@ -12,7 +12,15 @@ import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MyDesigns from './pages/MyDesigns';
-import AdminDashboard from './pages/AdminDashboard';
+
+// Admin Pages
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminOrders from './pages/admin/Orders';
+import AdminProducts from './pages/admin/Products';
+
+// User Pages
+import Profile from './pages/user/Profile';
+import MyOrders from './pages/user/MyOrders';
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { isAuthenticated, isAdmin } = useAuth();
@@ -102,6 +110,22 @@ function AppContent() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/my-orders"
+                element={
+                  <ProtectedRoute>
+                    <MyOrders />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Admin Routes (require admin role) */}
               <Route
@@ -109,6 +133,22 @@ function AppContent() {
                 element={
                   <ProtectedRoute requireAdmin={true}>
                     <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/orders"
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminOrders />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/products"
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminProducts />
                   </ProtectedRoute>
                 }
               />
