@@ -211,5 +211,24 @@ export const uploadAPI = {
   },
 };
 
+// ==================== STRIPE ====================
+
+export const stripeAPI = {
+  // Creer une session de paiement Stripe
+  createCheckoutSession: async (orderId, shippingInfo) => {
+    const response = await api.post('/stripe/create-checkout-session', {
+      orderId,
+      shippingInfo
+    });
+    return response.data;
+  },
+
+  // Verifier le statut d'un paiement
+  verifyPayment: async (sessionId, orderId) => {
+    const response = await api.get(`/stripe/verify-payment?sessionId=${sessionId}&orderId=${orderId}`);
+    return response.data;
+  },
+};
+
 // Export de l'instance axios pour des requêtes personnalisées si nécessaire
 export default api;

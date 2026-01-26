@@ -12,6 +12,7 @@ import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MyDesigns from './pages/MyDesigns';
+import PaymentSuccess from './pages/PaymentSuccess';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -123,6 +124,14 @@ function AppContent() {
                 element={
                   <ProtectedRoute>
                     <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/payment-success"
+                element={
+                  <ProtectedRoute>
+                    <PaymentSuccess />
                   </ProtectedRoute>
                 }
               />

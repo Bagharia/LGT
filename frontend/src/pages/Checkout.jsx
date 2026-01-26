@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ordersAPI } from '../services/api';
+import { ordersAPI, stripeAPI } from '../services/api';
+import { loadStripe } from '@stripe/stripe-js';
+
+// Cle publique Stripe
+const stripePromise = loadStripe('pk_test_51StsA696iOtQ9P15MV1mPMyfTKUscOcSqGePYBoW1QnYUC2OaZ12mc41q1LoB288mZV6LyKnPgjRiMVVdrr2489700enG6cXVL');
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -37,7 +41,7 @@ const Checkout = () => {
       setLoading(false);
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Commande non trouvée');
+      alert('Commande non trouvee');
       navigate('/my-orders');
     }
   };
@@ -62,16 +66,17 @@ const Checkout = () => {
     try {
       setSubmitting(true);
 
-      // Ici, vous pourrez ajouter l'intégration Stripe plus tard
-      // Pour l'instant, on simule juste une confirmation de commande
+      // Creer une session Stripe Checkout
+      const { url } = await stripeAPI.createCheckoutSession(orderId, formData);
 
-      alert('Commande confirmée ! Vous allez être redirigé vers vos commandes.');
-      navigate('/my-orders');
+      // Rediriger vers Stripe Checkout
+      if (url) {
+        window.location.href = url;
+      }
 
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors de la validation de la commande');
-    } finally {
+      alert('Erreur lors de la creation du paiement');
       setSubmitting(false);
     }
   };
@@ -100,7 +105,7 @@ const Checkout = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Prénom *
+                  Prenom *
                 </label>
                 <input
                   type="text"
@@ -142,7 +147,7 @@ const Checkout = () => {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Téléphone
+                Telephone
               </label>
               <input
                 type="tel"
@@ -213,17 +218,33 @@ const Checkout = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full mt-6 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-bold text-lg disabled:bg-gray-400"
+              className="w-full mt-6 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-bold text-lg disabled:bg-gray-400 flex items-center justify-center gap-2"
             >
-              {submitting ? 'Traitement...' : 'Confirmer la commande'}
+              {submitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Redirection vers le paiement...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                  Payer avec Stripe
+                </>
+              )}
             </button>
+
+            <p className="text-xs text-gray-500 text-center mt-2">
+              Paiement securise par Stripe. Vos informations bancaires ne sont jamais stockees sur notre serveur.
+            </p>
           </form>
         </div>
 
-        {/* Récapitulatif de la commande */}
+        {/* Recapitulatif de la commande */}
         <div>
           <div className="bg-white rounded-xl shadow-md border-2 border-black p-6 sticky top-8">
-            <h2 className="text-2xl font-bold mb-6">Récapitulatif</h2>
+            <h2 className="text-2xl font-bold mb-6">Recapitulatif</h2>
 
             <div className="space-y-4 mb-6">
               {order?.designs?.map((design) => (
@@ -247,7 +268,7 @@ const Checkout = () => {
                       ))}
                     </div>
                     <p className="text-sm font-semibold text-gray-900 mt-2">
-                      {design.finalPrice?.toFixed(2)} €
+                      {design.finalPrice?.toFixed(2)} EUR
                     </p>
                   </div>
                 </div>
@@ -257,7 +278,7 @@ const Checkout = () => {
             <div className="space-y-2 border-t-2 border-gray-200 pt-4">
               <div className="flex justify-between text-gray-600">
                 <span>Sous-total</span>
-                <span>{order?.totalPrice?.toFixed(2)} €</span>
+                <span>{order?.totalPrice?.toFixed(2)} EUR</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Livraison</span>
@@ -265,7 +286,7 @@ const Checkout = () => {
               </div>
               <div className="flex justify-between text-xl font-bold text-gray-900 border-t-2 border-gray-200 pt-2 mt-2">
                 <span>Total</span>
-                <span>{order?.totalPrice?.toFixed(2)} €</span>
+                <span>{order?.totalPrice?.toFixed(2)} EUR</span>
               </div>
             </div>
 
@@ -275,6 +296,15 @@ const Checkout = () => {
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <span className="text-sm font-semibold">Livraison gratuite</span>
+              </div>
+            </div>
+
+            <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 text-blue-800">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+                <span className="text-sm font-semibold">Paiement 100% securise</span>
               </div>
             </div>
           </div>
