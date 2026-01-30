@@ -203,6 +203,10 @@ exports.getAllOrders = async (req, res) => {
       status: order.status,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
+      shippingAddress: order.shippingAddress,
+      shippingCity: order.shippingCity,
+      shippingZip: order.shippingZip,
+      shippingCountry: order.shippingCountry,
       designs: order.orderDesigns.map(od => ({
         id: od.design.id,
         name: od.design.name,

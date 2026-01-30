@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { authAPI, designsAPI, ordersAPI } from '../../services/api';
+import Header from '../../components/Header';
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -16,11 +18,9 @@ const Profile = () => {
 
   const loadUserData = async () => {
     try {
-      // Charger les infos utilisateur
       const userData = authAPI.getCurrentUser();
       setUser(userData);
 
-      // Charger les statistiques
       const [designsData, ordersData] = await Promise.all([
         designsAPI.getMy(),
         ordersAPI.getMy()
@@ -43,140 +43,196 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="min-h-screen bg-primary flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-black mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-accent border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-text-muted">Chargement du profil...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-primary">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-md p-6 border-2 border-black">
-        <div className="flex items-center gap-4">
-          <div className="bg-black text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold">
-            {user?.email?.charAt(0).toUpperCase() || 'U'}
+      <Header />
+
+      {/* Main Content */}
+      <div className="px-8 md:px-16 py-12 pt-24">
+        {/* Profile Header */}
+        <div className="mb-12">
+          <div className="flex flex-col md:flex-row md:items-center gap-6">
+            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-accent to-cyan-400 flex items-center justify-center text-primary text-4xl font-bold">
+              {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            <div>
+              <div className="hero-tag mb-2">Mon Compte</div>
+              <h1 className="font-space-grotesk text-4xl md:text-5xl font-bold text-white mb-2">
+                {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'Mon Profil'}
+              </h1>
+              <p className="text-text-muted text-lg">{user?.email}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Mon Profil</h1>
-            <p className="text-gray-600 mt-1">{user?.email}</p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {/* Designs */}
+          <div className="bg-[#111] rounded-2xl border border-white/10 p-6 hover:border-blue-500/30 transition-colors">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+              </div>
+              <span className="text-xs text-blue-400 bg-blue-500/10 px-2 py-1 rounded-full">Créations</span>
+            </div>
+            <p className="font-space-grotesk text-4xl font-bold text-white mb-1">{stats.totalDesigns}</p>
+            <p className="text-text-muted text-sm">Designs créés</p>
           </div>
+
+          {/* Orders */}
+          <div className="bg-[#111] rounded-2xl border border-white/10 p-6 hover:border-purple-500/30 transition-colors">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+              <span className="text-xs text-purple-400 bg-purple-500/10 px-2 py-1 rounded-full">Achats</span>
+            </div>
+            <p className="font-space-grotesk text-4xl font-bold text-white mb-1">{stats.totalOrders}</p>
+            <p className="text-text-muted text-sm">Commandes passées</p>
+          </div>
+
+          {/* Total Spent */}
+          <div className="bg-[#111] rounded-2xl border border-white/10 p-6 hover:border-accent/30 transition-colors">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
+                <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span className="text-xs text-accent bg-accent/10 px-2 py-1 rounded-full">Total</span>
+            </div>
+            <p className="font-space-grotesk text-4xl font-bold text-accent mb-1">{stats.totalSpent.toFixed(2)} €</p>
+            <p className="text-text-muted text-sm">Total dépensé</p>
+          </div>
+        </div>
+
+        {/* Account Info */}
+        <div className="bg-[#111] rounded-2xl border border-white/10 overflow-hidden mb-12">
+          <div className="p-6 border-b border-white/10">
+            <h2 className="font-space-grotesk text-2xl font-bold text-white">Informations du compte</h2>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-sm font-medium text-text-muted block mb-2">Prénom</label>
+                <p className="text-lg text-white bg-white/5 px-4 py-3 rounded-xl border border-white/10">
+                  {user?.firstName || 'Non renseigné'}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-text-muted block mb-2">Nom</label>
+                <p className="text-lg text-white bg-white/5 px-4 py-3 rounded-xl border border-white/10">
+                  {user?.lastName || 'Non renseigné'}
+                </p>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-text-muted block mb-2">Email</label>
+              <p className="text-lg text-white bg-white/5 px-4 py-3 rounded-xl border border-white/10">
+                {user?.email}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-sm font-medium text-text-muted block mb-2">Rôle</label>
+                <p className="text-lg text-white bg-white/5 px-4 py-3 rounded-xl border border-white/10">
+                  <span className={`inline-flex items-center gap-2 ${user?.role === 'ADMIN' ? 'text-accent' : ''}`}>
+                    {user?.role === 'ADMIN' && (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    )}
+                    {user?.role === 'ADMIN' ? 'Administrateur' : 'Utilisateur'}
+                  </span>
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-text-muted block mb-2">Membre depuis</label>
+                <p className="text-lg text-white bg-white/5 px-4 py-3 rounded-xl border border-white/10">
+                  {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                  }) : 'N/A'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Link
+            to="/my-designs"
+            className="group bg-[#111] rounded-2xl border border-white/10 p-8 hover:border-accent/50 transition-all duration-300"
+          >
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-space-grotesk text-2xl font-bold text-white mb-2 group-hover:text-accent transition-colors">
+                  Mes Designs
+                </h3>
+                <p className="text-text-muted">Voir et gérer mes créations</p>
+              </div>
+              <svg className="w-6 h-6 text-text-muted group-hover:text-accent group-hover:translate-x-2 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </Link>
+
+          <Link
+            to="/my-orders"
+            className="group bg-[#111] rounded-2xl border border-white/10 p-8 hover:border-accent/50 transition-all duration-300"
+          >
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-space-grotesk text-2xl font-bold text-white mb-2 group-hover:text-accent transition-colors">
+                  Mes Commandes
+                </h3>
+                <p className="text-text-muted">Suivre mes commandes</p>
+              </div>
+              <svg className="w-6 h-6 text-text-muted group-hover:text-accent group-hover:translate-x-2 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </Link>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl shadow-md p-6 border-2 border-black">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium">Mes Designs</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalDesigns}</p>
-            </div>
-            <div className="bg-blue-100 p-4 rounded-full">
-              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-              </svg>
-            </div>
-          </div>
+      {/* Footer */}
+      <footer className="border-t border-white/10 px-8 md:px-16 py-8 mt-12">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <Link to="/" className="font-space-grotesk text-xl font-bold text-white">
+            LGT<span className="text-accent">.</span>
+          </Link>
+          <p className="text-text-muted text-sm">
+            &copy; 2026 LGT. Tous droits réservés.
+          </p>
         </div>
-
-        <div className="bg-white rounded-xl shadow-md p-6 border-2 border-black">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium">Mes Commandes</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalOrders}</p>
-            </div>
-            <div className="bg-purple-100 p-4 rounded-full">
-              <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-md p-6 border-2 border-black">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium">Total Dépensé</p>
-              <p className="text-3xl font-bold text-green-600 mt-2">{stats.totalSpent.toFixed(2)} €</p>
-            </div>
-            <div className="bg-green-100 p-4 rounded-full">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Account Info */}
-      <div className="bg-white rounded-xl shadow-md border-2 border-black overflow-hidden">
-        <div className="p-6 border-b-2 border-black">
-          <h2 className="text-xl font-bold text-gray-900">Informations du compte</h2>
-        </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="text-sm font-medium text-gray-500">Email</label>
-            <p className="text-lg font-semibold text-gray-900">{user?.email}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-500">Rôle</label>
-            <p className="text-lg font-semibold text-gray-900">
-              {user?.role === 'admin' ? 'Administrateur' : 'Utilisateur'}
-            </p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-500">Membre depuis</label>
-            <p className="text-lg font-semibold text-gray-900">
-              {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric'
-              }) : 'N/A'}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <a
-          href="/my-designs"
-          className="bg-white rounded-xl shadow-md p-6 border-2 border-black hover:shadow-xl transition-shadow"
-        >
-          <div className="flex items-center gap-4">
-            <div className="bg-blue-100 p-4 rounded-full">
-              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-900">Mes Designs</h3>
-              <p className="text-gray-600">Gérer mes créations</p>
-            </div>
-          </div>
-        </a>
-
-        <a
-          href="/my-orders"
-          className="bg-white rounded-xl shadow-md p-6 border-2 border-black hover:shadow-xl transition-shadow"
-        >
-          <div className="flex items-center gap-4">
-            <div className="bg-purple-100 p-4 rounded-full">
-              <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-900">Mes Commandes</h3>
-              <p className="text-gray-600">Suivre mes commandes</p>
-            </div>
-          </div>
-        </a>
-      </div>
+      </footer>
     </div>
   );
 };

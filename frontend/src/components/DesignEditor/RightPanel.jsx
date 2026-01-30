@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import * as fabric from 'fabric';
+import { CANVAS_CONFIG } from './Canvas';
+
+const { PX_PER_CM, PRINT_AREA } = CANVAS_CONFIG;
 
 const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, saving, activeToolSection, setActiveToolSection }) => {
   const [textValue, setTextValue] = useState('Votre texte');
@@ -8,6 +11,19 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, savi
   const [fontFamily, setFontFamily] = useState('Arial');
   const [selectedObject, setSelectedObject] = useState(null);
   const [curveValue, setCurveValue] = useState(0);
+
+  // États pour les dimensions de l'objet sélectionné (en cm)
+  const [objectWidthCm, setObjectWidthCm] = useState(0);
+  const [objectHeightCm, setObjectHeightCm] = useState(0);
+  const [objectLeftCm, setObjectLeftCm] = useState(0);
+  const [objectTopCm, setObjectTopCm] = useState(0);
+
+  // Zone imprimable (importée de Canvas)
+  const printAreaBounds = PRINT_AREA;
+
+  // Conversion px <-> cm
+  const pxToCm = (px) => (px / PX_PER_CM).toFixed(1);
+  const cmToPx = (cm) => parseFloat(cm) * PX_PER_CM;
 
   // États pour les tailles et quantités
   const [quantities, setQuantities] = useState({
@@ -27,6 +43,18 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, savi
 
   const fonts = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana'];
 
+  // Mettre à jour les dimensions affichées (en cm)
+  const updateObjectDimensions = (obj) => {
+    if (!obj) return;
+    const bounds = obj.getBoundingRect();
+    // Convertir les dimensions en cm
+    setObjectWidthCm(pxToCm(bounds.width));
+    setObjectHeightCm(pxToCm(bounds.height));
+    // Position relative à la zone imprimable, convertie en cm
+    setObjectLeftCm(pxToCm(obj.left - printAreaBounds.left));
+    setObjectTopCm(pxToCm(obj.top - printAreaBounds.top));
+  };
+
   useEffect(() => {
     if (!canvas) return;
 
@@ -34,24 +62,115 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, savi
       const active = canvas.getActiveObject();
       setSelectedObject(active);
 
-      if (active && active.type === 'i-text') {
-        setTextValue(active.text);
-        setTextColor(active.fill);
-        setFontSize(Math.round(active.fontSize));
-        setFontFamily(active.fontFamily);
+      if (active) {
+        updateObjectDimensions(active);
+
+        if (active.type === 'i-text') {
+          setTextValue(active.text);
+          setTextColor(active.fill);
+          setFontSize(Math.round(active.fontSize));
+          setFontFamily(active.fontFamily);
+        }
+      }
+    };
+
+    const handleObjectModified = (e) => {
+      if (e.target) {
+        updateObjectDimensions(e.target);
+      }
+    };
+
+    const handleObjectScaling = (e) => {
+      if (e.target) {
+        updateObjectDimensions(e.target);
+      }
+    };
+
+    const handleObjectMoving = (e) => {
+      if (e.target) {
+        setObjectLeftCm(pxToCm(e.target.left - printAreaBounds.left));
+        setObjectTopCm(pxToCm(e.target.top - printAreaBounds.top));
       }
     };
 
     canvas.on('selection:created', handleSelection);
     canvas.on('selection:updated', handleSelection);
     canvas.on('selection:cleared', () => setSelectedObject(null));
+    canvas.on('object:modified', handleObjectModified);
+    canvas.on('object:scaling', handleObjectScaling);
+    canvas.on('object:moving', handleObjectMoving);
 
     return () => {
       canvas.off('selection:created', handleSelection);
       canvas.off('selection:updated', handleSelection);
       canvas.off('selection:cleared');
+      canvas.off('object:modified', handleObjectModified);
+      canvas.off('object:scaling', handleObjectScaling);
+      canvas.off('object:moving', handleObjectMoving);
     };
   }, [canvas]);
+
+  // Modifier la largeur de l'objet (en cm)
+  const changeObjectWidth = (value) => {
+    setObjectWidthCm(value);
+
+    if (!canvas || !selectedObject) return;
+    const newWidthCm = parseFloat(value);
+    if (isNaN(newWidthCm) || newWidthCm < 0.1) return;
+
+    const newWidthPx = cmToPx(newWidthCm);
+    const currentBounds = selectedObject.getBoundingRect();
+    if (currentBounds.width === 0) return;
+    const scale = newWidthPx / currentBounds.width;
+    selectedObject.set('scaleX', selectedObject.scaleX * scale);
+    selectedObject.setCoords();
+    canvas.renderAll();
+  };
+
+  // Modifier la hauteur de l'objet (en cm)
+  const changeObjectHeight = (value) => {
+    setObjectHeightCm(value);
+
+    if (!canvas || !selectedObject) return;
+    const newHeightCm = parseFloat(value);
+    if (isNaN(newHeightCm) || newHeightCm < 0.1) return;
+
+    const newHeightPx = cmToPx(newHeightCm);
+    const currentBounds = selectedObject.getBoundingRect();
+    if (currentBounds.height === 0) return;
+    const scale = newHeightPx / currentBounds.height;
+    selectedObject.set('scaleY', selectedObject.scaleY * scale);
+    selectedObject.setCoords();
+    canvas.renderAll();
+  };
+
+  // Modifier la position X (en cm, relative à la zone imprimable)
+  const changeObjectLeft = (value) => {
+    setObjectLeftCm(value);
+
+    if (!canvas || !selectedObject) return;
+    const newLeftCm = parseFloat(value);
+    if (isNaN(newLeftCm)) return;
+
+    const newLeftPx = printAreaBounds.left + cmToPx(newLeftCm);
+    selectedObject.set('left', newLeftPx);
+    selectedObject.setCoords();
+    canvas.renderAll();
+  };
+
+  // Modifier la position Y (en cm, relative à la zone imprimable)
+  const changeObjectTop = (value) => {
+    setObjectTopCm(value);
+
+    if (!canvas || !selectedObject) return;
+    const newTopCm = parseFloat(value);
+    if (isNaN(newTopCm)) return;
+
+    const newTopPx = printAreaBounds.top + cmToPx(newTopCm);
+    selectedObject.set('top', newTopPx);
+    selectedObject.setCoords();
+    canvas.renderAll();
+  };
 
   // Ajouter du texte au canvas
   const addText = () => {
@@ -663,6 +782,57 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, savi
               </div>
             </div>
 
+            {/* Dimensions Panel - Shown when object is selected */}
+            {selectedObject && (
+              <div className="border-t pt-4">
+                <h4 className="text-sm font-semibold mb-3">Dimensions & Position (cm)</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-gray-600 block mb-1">Largeur (cm)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={objectWidthCm}
+                      onChange={(e) => changeObjectWidth(e.target.value)}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none text-sm"
+                      min="0.1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600 block mb-1">Hauteur (cm)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={objectHeightCm}
+                      onChange={(e) => changeObjectHeight(e.target.value)}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none text-sm"
+                      min="0.1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600 block mb-1">Position X (cm)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={objectLeftCm}
+                      onChange={(e) => changeObjectLeft(e.target.value)}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600 block mb-1">Position Y (cm)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={objectTopCm}
+                      onChange={(e) => changeObjectTop(e.target.value)}
+                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="grid grid-cols-3 gap-2 pt-4 border-t">
               <button onClick={bringToFront} className="flex flex-col items-center gap-1 py-3 hover:bg-gray-100 rounded-lg" disabled={!selectedObject}>
@@ -703,7 +873,7 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, savi
 
       {/* Designs Section */}
       {activeToolSection === 'designs' && (
-        <div className="p-4">
+        <div className="p-4 space-y-4">
           <h3 className="text-lg font-bold mb-4">Vos designs</h3>
           <label htmlFor="image-upload" className="block w-full py-12 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-cyan-500">
             <svg className="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -718,6 +888,79 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, savi
             onChange={handleImageUpload}
             className="hidden"
           />
+
+          {/* Dimensions Panel for images */}
+          {selectedObject && (
+            <div className="border-t pt-4 mt-4">
+              <h4 className="text-sm font-semibold mb-3">Dimensions & Position (cm)</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-gray-600 block mb-1">Largeur (cm)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={objectWidthCm}
+                    onChange={(e) => changeObjectWidth(e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none text-sm"
+                    min="0.1"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600 block mb-1">Hauteur (cm)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={objectHeightCm}
+                    onChange={(e) => changeObjectHeight(e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none text-sm"
+                    min="0.1"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600 block mb-1">Position X (cm)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={objectLeftCm}
+                    onChange={(e) => changeObjectLeft(e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-600 block mb-1">Position Y (cm)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={objectTopCm}
+                    onChange={(e) => changeObjectTop(e.target.value)}
+                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Action buttons for images */}
+              <div className="grid grid-cols-3 gap-2 mt-4">
+                <button onClick={bringToFront} className="flex flex-col items-center gap-1 py-3 hover:bg-gray-100 rounded-lg">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  </svg>
+                  <span className="text-xs">À l'avant</span>
+                </button>
+                <button onClick={sendToBack} className="flex flex-col items-center gap-1 py-3 hover:bg-gray-100 rounded-lg">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8V4m0 0l-4 4m4-4l4 4m-6 4v12m0 0l-4-4m4 4l4-4" />
+                  </svg>
+                  <span className="text-xs">À l'arrière</span>
+                </button>
+                <button onClick={deleteObject} className="flex flex-col items-center gap-1 py-3 hover:bg-red-50 text-red-600 rounded-lg">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span className="text-xs">Supprimer</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

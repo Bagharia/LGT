@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { productsAPI, designsAPI, ordersAPI } from '../services/api';
 import DesignCanvas from '../components/DesignEditor/Canvas';
 import RightPanel from '../components/DesignEditor/RightPanel';
@@ -19,6 +19,7 @@ const Editor = () => {
   const [activeToolSection, setActiveToolSection] = useState(null);
   const [tshirtColor, setTshirtColor] = useState('#FFFFFF');
   const [designLoaded, setDesignLoaded] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
 
   // Ajouter du texte automatiquement quand on clique sur le bouton Texte
   const handleTextClick = () => {
@@ -204,10 +205,10 @@ const Editor = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="min-h-screen bg-primary flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-black mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement de l'éditeur...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-accent border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-text-muted">Chargement de l'éditeur...</p>
         </div>
       </div>
     );
@@ -215,14 +216,49 @@ const Editor = () => {
 
   if (!product) {
     return (
-      <div className="text-center py-20">
-        <p className="text-gray-600">Produit non trouvé</p>
+      <div className="min-h-screen bg-primary flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-text-muted mb-4">Produit non trouvé</p>
+          <Link to="/products" className="btn-primary">
+            Retour aux produits
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="editor-layout">
+      {/* Editor Header */}
+      <header className="editor-header">
+        <div className="flex items-center gap-4">
+          <Link to="/products" className="editor-back-btn" title="Retour">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </Link>
+          <Link to="/" className="font-space-grotesk text-xl font-bold text-white tracking-tight">
+            LGT<span className="text-accent">.</span>
+          </Link>
+          <span className="text-white/30">|</span>
+          <span className="text-text-muted text-sm">{product?.name}</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link to="/my-designs" className="editor-nav-link">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            Mes Designs
+          </Link>
+          <Link to="/my-orders" className="editor-nav-link">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            Commandes
+          </Link>
+        </div>
+      </header>
+
       {/* Div principale - contient tout */}
       <div className="editor-container">
 
@@ -261,6 +297,16 @@ const Editor = () => {
             </svg>
             <span>Produits</span>
           </button>
+          <button
+            className={`toggle-btn ${showGrid ? 'active' : ''}`}
+            onClick={() => setShowGrid(!showGrid)}
+            title={showGrid ? 'Masquer la grille' : 'Afficher la grille'}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 9h16M4 13h16M4 17h16M9 4v16M13 4v16M17 4v16" />
+            </svg>
+            <span>Grille</span>
+          </button>
 
           <div className="flex-1"></div>
 
@@ -288,6 +334,7 @@ const Editor = () => {
                 mockupUrl={product.mockupFrontUrl}
                 onCanvasReady={setFrontCanvas}
                 tshirtColor={tshirtColor}
+                showGrid={showGrid}
               />
             </div>
 
@@ -298,6 +345,7 @@ const Editor = () => {
                 mockupUrl={product.mockupBackUrl}
                 onCanvasReady={setBackCanvas}
                 tshirtColor={tshirtColor}
+                showGrid={showGrid}
               />
             </div>
           </div>

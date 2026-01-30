@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { ordersAPI } from '../../services/api';
+import Header from '../../components/Header';
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -28,282 +30,348 @@ const AdminOrders = () => {
       setOrders(orders.map(order =>
         order.id === orderId ? { ...order, status: newStatus } : order
       ));
-      alert('Statut mis à jour avec succès');
     } catch (error) {
       console.error('Erreur:', error);
       alert('Erreur lors de la mise à jour du statut');
     }
   };
 
+  const getStatusConfig = (status) => {
+    const config = {
+      pending: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', border: 'border-yellow-500/30', label: 'En attente' },
+      PENDING: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', border: 'border-yellow-500/30', label: 'En attente' },
+      processing: { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30', label: 'En production' },
+      PROCESSING: { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30', label: 'En production' },
+      shipped: { bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/30', label: 'Expédiée' },
+      SHIPPED: { bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/30', label: 'Expédiée' },
+      delivered: { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30', label: 'Livrée' },
+      DELIVERED: { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30', label: 'Livrée' },
+      cancelled: { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30', label: 'Annulée' },
+      CANCELLED: { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30', label: 'Annulée' },
+      paid: { bg: 'bg-accent/20', text: 'text-accent', border: 'border-accent/30', label: 'Payée' },
+      PAID: { bg: 'bg-accent/20', text: 'text-accent', border: 'border-accent/30', label: 'Payée' },
+    };
+    return config[status] || { bg: 'bg-white/10', text: 'text-white', border: 'border-white/20', label: status };
+  };
+
   const getStatusBadge = (status) => {
-    const badges = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      processing: 'bg-blue-100 text-blue-800',
-      shipped: 'bg-purple-100 text-purple-800',
-      delivered: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800'
-    };
-    const labels = {
-      pending: 'En attente',
-      processing: 'En production',
-      shipped: 'Expédiée',
-      delivered: 'Livrée',
-      cancelled: 'Annulée'
-    };
+    const config = getStatusConfig(status);
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badges[status] || 'bg-gray-100 text-gray-800'}`}>
-        {labels[status] || status}
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${config.bg} ${config.text} border ${config.border}`}>
+        {config.label}
       </span>
     );
   };
 
   const filteredOrders = filter === 'all'
     ? orders
-    : orders.filter(order => order.status === filter);
+    : orders.filter(order => order.status === filter || order.status === filter.toUpperCase());
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="min-h-screen bg-primary flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-black mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement des commandes...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-accent border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-text-muted">Chargement des commandes...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-primary">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-md p-6 border-2 border-black">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gestion des Commandes</h1>
-            <p className="text-gray-600 mt-2">{filteredOrders.length} commande(s)</p>
-          </div>
-        </div>
-      </div>
+      <Header />
 
-      {/* Filters */}
-      <div className="bg-white rounded-xl shadow-md p-4 border-2 border-black">
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg font-semibold ${
-              filter === 'all'
-                ? 'bg-black text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            Toutes ({orders.length})
-          </button>
-          <button
-            onClick={() => setFilter('pending')}
-            className={`px-4 py-2 rounded-lg font-semibold ${
-              filter === 'pending'
-                ? 'bg-yellow-500 text-white'
-                : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-            }`}
-          >
-            En attente ({orders.filter(o => o.status === 'pending').length})
-          </button>
-          <button
-            onClick={() => setFilter('processing')}
-            className={`px-4 py-2 rounded-lg font-semibold ${
-              filter === 'processing'
-                ? 'bg-blue-500 text-white'
-                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-            }`}
-          >
-            En production ({orders.filter(o => o.status === 'processing').length})
-          </button>
-          <button
-            onClick={() => setFilter('shipped')}
-            className={`px-4 py-2 rounded-lg font-semibold ${
-              filter === 'shipped'
-                ? 'bg-purple-500 text-white'
-                : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-            }`}
-          >
-            Expédiées ({orders.filter(o => o.status === 'shipped').length})
-          </button>
-          <button
-            onClick={() => setFilter('delivered')}
-            className={`px-4 py-2 rounded-lg font-semibold ${
-              filter === 'delivered'
-                ? 'bg-green-500 text-white'
-                : 'bg-green-100 text-green-700 hover:bg-green-200'
-            }`}
-          >
-            Livrées ({orders.filter(o => o.status === 'delivered').length})
-          </button>
-        </div>
-      </div>
-
-      {/* Orders Table */}
-      <div className="bg-white rounded-xl shadow-md border-2 border-black overflow-hidden">
-        {filteredOrders.length === 0 ? (
-          <div className="p-12 text-center">
-            <svg className="w-24 h-24 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      {/* Main Content */}
+      <div className="px-8 md:px-16 py-12 pt-24">
+        {/* Page Title */}
+        <div className="mb-8">
+          <Link to="/admin" className="text-accent hover:text-white transition-colors text-sm mb-4 inline-flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Aucune commande</h3>
-            <p className="text-gray-600">Il n'y a pas de commandes pour ce filtre.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Client
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Designs
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Statut
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      #{order.id}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{order.user?.email || 'N/A'}</div>
-                      <div className="text-sm text-gray-500">ID: {order.userId}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(order.createdAt).toLocaleDateString('fr-FR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {order.designs?.length || 0} design(s)
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                      {order.totalPrice?.toFixed(2)} €
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {getStatusBadge(order.status)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setSelectedOrder(order)}
-                          className="text-blue-600 hover:text-blue-700 font-semibold"
-                        >
-                          Détails
-                        </button>
-                        <select
-                          value={order.status}
-                          onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                          className="text-sm border border-gray-300 rounded px-2 py-1"
-                        >
-                          <option value="pending">En attente</option>
-                          <option value="processing">En production</option>
-                          <option value="shipped">Expédiée</option>
-                          <option value="delivered">Livrée</option>
-                          <option value="cancelled">Annulée</option>
-                        </select>
-                      </div>
-                    </td>
+            Retour au Dashboard
+          </Link>
+          <h1 className="font-space-grotesk text-4xl md:text-5xl font-bold text-white mb-4">
+            Gestion des <span className="accent">Commandes</span>
+          </h1>
+          <p className="text-text-muted text-lg">
+            {filteredOrders.length} commande(s) {filter !== 'all' ? `(${getStatusConfig(filter).label})` : ''}
+          </p>
+        </div>
+
+        {/* Filters */}
+        <div className="flex gap-3 flex-wrap mb-8">
+          {[
+            { key: 'all', label: 'Toutes', count: orders.length },
+            { key: 'pending', label: 'En attente', count: orders.filter(o => o.status === 'pending' || o.status === 'PENDING').length },
+            { key: 'PAID', label: 'Payées', count: orders.filter(o => o.status === 'paid' || o.status === 'PAID').length },
+            { key: 'processing', label: 'En production', count: orders.filter(o => o.status === 'processing' || o.status === 'PROCESSING').length },
+            { key: 'shipped', label: 'Expédiées', count: orders.filter(o => o.status === 'shipped' || o.status === 'SHIPPED').length },
+            { key: 'delivered', label: 'Livrées', count: orders.filter(o => o.status === 'delivered' || o.status === 'DELIVERED').length },
+          ].map(({ key, label, count }) => (
+            <button
+              key={key}
+              onClick={() => setFilter(key)}
+              className={`px-4 py-2 rounded-xl font-medium text-sm transition-all ${
+                filter === key
+                  ? 'bg-accent text-primary'
+                  : 'bg-white/5 text-text-muted border border-white/10 hover:border-accent/50 hover:text-white'
+              }`}
+            >
+              {label} ({count})
+            </button>
+          ))}
+        </div>
+
+        {/* Orders Table */}
+        <div className="bg-[#111] rounded-2xl border border-white/10 overflow-hidden">
+          {filteredOrders.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
+                <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <h3 className="font-space-grotesk text-xl font-bold text-white mb-2">Aucune commande</h3>
+              <p className="text-text-muted">Il n'y a pas de commandes pour ce filtre.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-white/5">
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Client</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Designs</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Total</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {filteredOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-white/5 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-white font-medium">#{order.id}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <p className="text-white font-medium">
+                            {order.user?.firstName && order.user?.lastName
+                              ? `${order.user.firstName} ${order.user.lastName}`
+                              : 'N/A'}
+                          </p>
+                          <p className="text-text-muted text-sm">{order.user?.email || 'N/A'}</p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-text-muted">
+                          {new Date(order.createdAt).toLocaleDateString('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-text-muted">{order.designs?.length || 0} design(s)</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-accent font-semibold">{order.totalPrice?.toFixed(2)} €</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(order.status)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setSelectedOrder(order)}
+                            className="text-accent hover:text-white transition-colors font-medium"
+                          >
+                            Détails
+                          </button>
+                          <select
+                            value={order.status}
+                            onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                            className="text-sm bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-accent"
+                          >
+                            <option value="PENDING" className="bg-[#111]">En attente</option>
+                            <option value="PAID" className="bg-[#111]">Payée</option>
+                            <option value="PROCESSING" className="bg-[#111]">En production</option>
+                            <option value="SHIPPED" className="bg-[#111]">Expédiée</option>
+                            <option value="DELIVERED" className="bg-[#111]">Livrée</option>
+                            <option value="CANCELLED" className="bg-[#111]">Annulée</option>
+                          </select>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Order Details Modal */}
       {selectedOrder && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setSelectedOrder(null)}>
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold">Détails de la commande #{selectedOrder.id}</h2>
-                <button
-                  onClick={() => setSelectedOrder(null)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedOrder(null)}
+        >
+          <div
+            className="bg-[#111] border border-white/10 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="p-6 border-b border-white/10 flex justify-between items-start">
+              <div>
+                <h2 className="font-space-grotesk text-2xl font-bold text-white mb-2">
+                  Commande #{selectedOrder.id}
+                </h2>
+                <p className="text-text-muted">
+                  {new Date(selectedOrder.createdAt).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
               </div>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-text-muted hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
+
+            {/* Modal Content */}
             <div className="p-6 space-y-6">
+              {/* Status & Total */}
+              <div className="flex flex-wrap gap-4 items-center justify-between p-4 bg-white/5 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <span className="text-text-muted">Statut:</span>
+                  {getStatusBadge(selectedOrder.status)}
+                </div>
+                <div className="text-right">
+                  <span className="text-text-muted text-sm">Total</span>
+                  <p className="font-space-grotesk text-3xl font-bold text-accent">
+                    {selectedOrder.totalPrice?.toFixed(2)} €
+                  </p>
+                </div>
+              </div>
+
               {/* Client Info */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Informations client</h3>
-                <p className="text-gray-700">Email: {selectedOrder.user?.email || 'N/A'}</p>
-                <p className="text-gray-700">Date: {new Date(selectedOrder.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-                <p className="text-gray-700">Statut: {getStatusBadge(selectedOrder.status)}</p>
+                <h3 className="font-space-grotesk text-lg font-semibold text-white mb-3">
+                  Informations Client
+                </h3>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+                  <p className="text-white">
+                    <span className="text-text-muted">Nom:</span> {selectedOrder.user?.firstName} {selectedOrder.user?.lastName}
+                  </p>
+                  <p className="text-white">
+                    <span className="text-text-muted">Email:</span> {selectedOrder.user?.email}
+                  </p>
+                </div>
               </div>
 
-              {/* Designs */}
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Designs commandés</h3>
-                <div className="space-y-4">
-                  {selectedOrder.designs?.map((design) => (
-                    <div key={design.id} className="border-2 border-gray-200 rounded-lg p-4 flex gap-4">
-                      {design.frontPreviewUrl && (
-                        <img
-                          src={design.frontPreviewUrl}
-                          alt={design.name}
-                          className="w-24 h-24 object-cover rounded border-2 border-black"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <h4 className="font-semibold">{design.name}</h4>
-                        <p className="text-sm text-gray-600">Quantités:</p>
-                        <div className="grid grid-cols-6 gap-2 mt-2">
-                          {design.quantities && Object.entries(design.quantities).map(([size, qty]) => (
-                            qty > 0 && (
-                              <div key={size} className="text-sm">
-                                <span className="font-semibold">{size}:</span> {qty}
-                              </div>
-                            )
-                          ))}
+              {/* Shipping Address */}
+              {(selectedOrder.shippingAddress || selectedOrder.shippingCity) && (
+                <div>
+                  <h3 className="font-space-grotesk text-lg font-semibold text-white mb-3">
+                    Adresse de Livraison
+                  </h3>
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+                    <p className="text-white">
+                      <span className="text-text-muted">Adresse:</span> {selectedOrder.shippingAddress || 'Non renseignée'}
+                    </p>
+                    <p className="text-white">
+                      <span className="text-text-muted">Ville:</span> {selectedOrder.shippingCity || 'Non renseignée'}
+                    </p>
+                    <p className="text-white">
+                      <span className="text-text-muted">Code postal:</span> {selectedOrder.shippingZip || 'Non renseigné'}
+                    </p>
+                    <p className="text-white">
+                      <span className="text-text-muted">Pays:</span> {selectedOrder.shippingCountry || 'Non renseigné'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Articles */}
+              {selectedOrder.designs && selectedOrder.designs.length > 0 && (
+                <div>
+                  <h3 className="font-space-grotesk text-lg font-semibold text-white mb-3">
+                    Articles ({selectedOrder.designs.length})
+                  </h3>
+                  <div className="space-y-3">
+                    {selectedOrder.designs.map((design, index) => (
+                      <div
+                        key={index}
+                        className="bg-white/5 border border-white/10 rounded-xl p-4 flex gap-4"
+                      >
+                        {design.frontPreviewUrl && (
+                          <img
+                            src={design.frontPreviewUrl}
+                            alt={design.name}
+                            className="w-20 h-20 object-cover rounded-lg border border-white/10"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-white mb-2">{design.name}</h4>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {design.quantities && Object.entries(design.quantities).map(([size, qty]) => (
+                              qty > 0 && (
+                                <span
+                                  key={size}
+                                  className="text-xs bg-white/10 text-white px-2 py-1 rounded"
+                                >
+                                  {size}: {qty}
+                                </span>
+                              )
+                            ))}
+                          </div>
+                          <p className="text-accent font-semibold">{design.finalPrice?.toFixed(2)} €</p>
                         </div>
-                        <p className="mt-2 font-semibold">Prix: {design.finalPrice?.toFixed(2)} €</p>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+            </div>
 
-              {/* Total */}
-              <div className="border-t-2 border-gray-200 pt-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-xl font-semibold">Total</span>
-                  <span className="text-2xl font-bold">{selectedOrder.totalPrice?.toFixed(2)} €</span>
-                </div>
-              </div>
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-white/10">
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="w-full btn-primary justify-center"
+              >
+                Fermer
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <footer className="border-t border-white/10 px-8 md:px-16 py-8 mt-12">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <Link to="/" className="font-space-grotesk text-xl font-bold text-white">
+            LGT<span className="text-accent">.</span>
+          </Link>
+          <p className="text-text-muted text-sm">
+            &copy; 2026 LGT. Panel Administrateur.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
