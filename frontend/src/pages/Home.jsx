@@ -151,7 +151,7 @@ const Home = () => {
                   <h3 className="product-name">{product.name}</h3>
                   <p className="product-price">{product.basePrice.toFixed(2)} EUR</p>
                 </div>
-                <Link to={`/editor/${product.id}`} className="product-link-overlay" />
+                <Link to={`/product/${product.id}`} className="product-link-overlay" />
               </div>
             ))}
           </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { productsAPI } from '../../services/api';
 import Header from '../../components/Header';
+import ImageUpload from '../../components/ImageUpload';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -317,30 +318,30 @@ const AdminProducts = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-text-muted mb-2">
-                  URL Image Face
-                </label>
-                <input
-                  type="url"
-                  value={formData.mockupFrontUrl}
-                  onChange={(e) => setFormData({ ...formData, mockupFrontUrl: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-text-muted focus:outline-none focus:border-accent transition-colors"
-                  placeholder="https://..."
-                />
-              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-2">
+                    Image Face
+                  </label>
+                  <ImageUpload
+                    type="product"
+                    currentImage={formData.mockupFrontUrl}
+                    onImageUploaded={(image) => setFormData({ ...formData, mockupFrontUrl: image.url })}
+                    aspectRatio="1/1"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-text-muted mb-2">
-                  URL Image Dos
-                </label>
-                <input
-                  type="url"
-                  value={formData.mockupBackUrl}
-                  onChange={(e) => setFormData({ ...formData, mockupBackUrl: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-text-muted focus:outline-none focus:border-accent transition-colors"
-                  placeholder="https://..."
-                />
+                <div>
+                  <label className="block text-sm font-medium text-text-muted mb-2">
+                    Image Dos
+                  </label>
+                  <ImageUpload
+                    type="product"
+                    currentImage={formData.mockupBackUrl}
+                    onImageUploaded={(image) => setFormData({ ...formData, mockupBackUrl: image.url })}
+                    aspectRatio="1/1"
+                  />
+                </div>
               </div>
 
               <div className="flex gap-4 pt-4">

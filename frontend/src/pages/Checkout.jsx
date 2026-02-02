@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { ordersAPI, stripeAPI } from '../services/api';
 import Header from '../components/Header';
 
@@ -9,8 +9,10 @@ const Checkout = () => {
   const orderId = searchParams.get('orderId');
 
   const [order, setOrder] = useState(null);
+  const [pendingOrder, setPendingOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [creatingOrder, setCreatingOrder] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -25,9 +27,17 @@ const Checkout = () => {
 
   useEffect(() => {
     if (orderId) {
+      // Mode: commande existante (design personnalisé)
       loadOrder();
     } else {
-      navigate('/my-orders');
+      // Mode: produit fini depuis localStorage
+      const stored = localStorage.getItem('pendingOrder');
+      if (stored) {
+        setPendingOrder(JSON.parse(stored));
+        setLoading(false);
+      } else {
+        navigate('/products');
+      }
     }
   }, [orderId]);
 
@@ -61,7 +71,31 @@ const Checkout = () => {
 
     try {
       setSubmitting(true);
-      const { url } = await stripeAPI.createCheckoutSession(orderId, formData);
+
+      let finalOrderId = orderId;
+
+      // Si c'est un produit fini (pas d'orderId), créer d'abord la commande
+      if (!orderId && pendingOrder) {
+        setCreatingOrder(true);
+
+        // Créer la commande pour produit fini
+        const orderData = {
+          type: 'ready-made',
+          productId: pendingOrder.productId,
+          quantities: pendingOrder.quantities,
+          totalPrice: pendingOrder.totalPrice,
+        };
+
+        const result = await ordersAPI.create(orderData);
+        finalOrderId = result.order.id;
+
+        // Nettoyer le localStorage
+        localStorage.removeItem('pendingOrder');
+        setCreatingOrder(false);
+      }
+
+      // Créer la session de paiement Stripe
+      const { url } = await stripeAPI.createCheckoutSession(finalOrderId, formData);
       if (url) {
         window.location.href = url;
       }
@@ -69,8 +103,19 @@ const Checkout = () => {
       console.error('Erreur:', error);
       alert('Erreur lors de la création du paiement');
       setSubmitting(false);
+      setCreatingOrder(false);
     }
   };
+
+  // Calculer le total à afficher
+  const displayTotal = order?.totalPrice || pendingOrder?.totalPrice || 0;
+  const displayItems = order?.designs || (pendingOrder ? [{
+    id: 'pending',
+    name: pendingOrder.productName,
+    frontPreviewUrl: pendingOrder.productImage,
+    quantities: pendingOrder.quantities,
+    finalPrice: pendingOrder.totalPrice,
+  }] : []);
 
   if (loading) {
     return (
@@ -92,11 +137,17 @@ const Checkout = () => {
       <div className="max-w-7xl mx-auto px-8 md:px-16 pt-28 pb-12">
         {/* Title */}
         <div className="mb-12">
+          <Link to="/products" className="text-accent hover:text-white transition-colors text-sm mb-4 inline-flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Continuer mes achats
+          </Link>
           <h1 className="font-space-grotesk text-4xl md:text-5xl font-bold text-white mb-4">
             Finaliser la <span className="accent">commande</span>
           </h1>
           <p className="text-text-muted text-lg">
-            Commande #{orderId} - Plus qu'une étape avant de recevoir vos créations
+            {orderId ? `Commande #${orderId} - ` : ''}Plus qu'une étape avant de recevoir {pendingOrder ? 'votre t-shirt' : 'vos créations'}
           </p>
         </div>
 
@@ -231,14 +282,14 @@ const Checkout = () => {
                   {submitting ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent"></div>
-                      Redirection vers le paiement...
+                      {creatingOrder ? 'Création de la commande...' : 'Redirection vers le paiement...'}
                     </>
                   ) : (
                     <>
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                       </svg>
-                      Payer avec Stripe
+                      Payer {displayTotal.toFixed(2)} € avec Stripe
                     </>
                   )}
                 </button>
@@ -259,19 +310,19 @@ const Checkout = () => {
 
               {/* Order Items */}
               <div className="space-y-6 mb-8">
-                {order?.designs?.map((design) => (
-                  <div key={design.id} className="flex gap-4 pb-6 border-b border-white/10">
-                    {design.frontPreviewUrl && (
+                {displayItems.map((item) => (
+                  <div key={item.id} className="flex gap-4 pb-6 border-b border-white/10">
+                    {item.frontPreviewUrl && (
                       <img
-                        src={design.frontPreviewUrl}
-                        alt={design.name}
+                        src={item.frontPreviewUrl}
+                        alt={item.name}
                         className="w-20 h-20 object-cover rounded-xl border border-white/10"
                       />
                     )}
                     <div className="flex-1">
-                      <h3 className="font-semibold text-white mb-2">{design.name}</h3>
+                      <h3 className="font-semibold text-white mb-2">{item.name}</h3>
                       <div className="flex flex-wrap gap-1 mb-2">
-                        {design.quantities && Object.entries(design.quantities).map(([size, qty]) => (
+                        {item.quantities && Object.entries(item.quantities).map(([size, qty]) => (
                           qty > 0 && (
                             <span key={size} className="text-xs bg-white/10 text-white px-2 py-1 rounded">
                               {size}: {qty}
@@ -280,7 +331,7 @@ const Checkout = () => {
                         ))}
                       </div>
                       <p className="text-accent font-semibold">
-                        {design.finalPrice?.toFixed(2)} EUR
+                        {item.finalPrice?.toFixed(2)} €
                       </p>
                     </div>
                   </div>
@@ -291,7 +342,7 @@ const Checkout = () => {
               <div className="space-y-3 border-t border-white/10 pt-6">
                 <div className="flex justify-between text-text-muted">
                   <span>Sous-total</span>
-                  <span>{order?.totalPrice?.toFixed(2)} EUR</span>
+                  <span>{displayTotal.toFixed(2)} €</span>
                 </div>
                 <div className="flex justify-between text-text-muted">
                   <span>Livraison</span>
@@ -299,7 +350,7 @@ const Checkout = () => {
                 </div>
                 <div className="flex justify-between text-xl font-bold text-white border-t border-white/10 pt-4 mt-4">
                   <span>Total</span>
-                  <span className="text-accent">{order?.totalPrice?.toFixed(2)} EUR</span>
+                  <span className="text-accent">{displayTotal.toFixed(2)} €</span>
                 </div>
               </div>
 

@@ -1,15 +1,32 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { designsAPI } from '../services/api';
+import { designsAPI, productsAPI } from '../services/api';
 import Header from '../components/Header';
 
 const MyDesigns = () => {
   const [designs, setDesigns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [defaultProductId, setDefaultProductId] = useState(1);
 
   useEffect(() => {
     loadDesigns();
+    loadDefaultProduct();
   }, []);
+
+  const loadDefaultProduct = async () => {
+    try {
+      const data = await productsAPI.getAll();
+      if (data.products && data.products.length > 0) {
+        // Chercher un t-shirt noir en premier, sinon prendre le premier produit
+        const blackShirt = data.products.find(p =>
+          p.name.toLowerCase().includes('noir') || p.name.toLowerCase().includes('black')
+        );
+        setDefaultProductId(blackShirt ? blackShirt.id : data.products[0].id);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement du produit par défaut:', error);
+    }
+  };
 
   const loadDesigns = async () => {
     try {
@@ -56,7 +73,7 @@ const MyDesigns = () => {
             </p>
           </div>
           <Link
-            to="/products"
+            to={`/editor/${defaultProductId}`}
             className="btn-primary self-start md:self-auto"
           >
             Nouveau Design
@@ -86,7 +103,7 @@ const MyDesigns = () => {
             <p className="text-text-muted text-lg mb-8 max-w-md mx-auto">
               Commencez à créer vos T-shirts personnalisés dès maintenant et laissez libre cours à votre créativité.
             </p>
-            <Link to="/products" className="btn-primary">
+            <Link to={`/editor/${defaultProductId}`} className="btn-primary">
               Créer mon premier design
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14M12 5l7 7-7 7"/>

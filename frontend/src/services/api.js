@@ -197,15 +197,36 @@ export const ordersAPI = {
 // ==================== UPLOAD ====================
 
 export const uploadAPI = {
-  // Upload d'image (multipart/form-data)
-  uploadImage: async (file) => {
+  // Upload d'image produit (admin)
+  uploadProductImage: async (file) => {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await api.post('/upload', formData, {
+    const response = await api.post('/upload/product', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+    });
+    return response.data;
+  },
+
+  // Upload d'image design (utilisateur)
+  uploadDesignImage: async (file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await api.post('/upload/design', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  // Supprimer une image (admin)
+  deleteImage: async (publicId) => {
+    const response = await api.delete('/upload/delete', {
+      data: { publicId },
     });
     return response.data;
   },

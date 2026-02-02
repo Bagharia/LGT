@@ -56,7 +56,7 @@ const Products = () => {
                 key={product.id}
                 className="product-card group"
               >
-                <div className="relative overflow-hidden rounded-2xl bg-[#111]">
+                <Link to={`/product/${product.id}`} className="relative overflow-hidden rounded-2xl bg-[#111] block">
                   <img
                     src={product.mockupFrontUrl || 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=600&fit=crop'}
                     alt={product.name}
@@ -64,26 +64,13 @@ const Products = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                  {/* Quick action button */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <Link
-                      to={`/editor/${product.id}`}
-                      className="btn-primary transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300"
-                    >
-                      Personnaliser
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                      </svg>
-                    </Link>
-                  </div>
-
                   {/* Tag */}
                   <div className="absolute top-4 left-4">
                     <span className="product-tag">
                       {index === 0 ? 'Populaire' : 'Nouveau'}
                     </span>
                   </div>
-                </div>
+                </Link>
 
                 {/* Product Info */}
                 <div className="pt-5">
@@ -98,7 +85,7 @@ const Products = () => {
                       {product.basePrice.toFixed(2)} EUR
                     </span>
                     <Link
-                      to={`/editor/${product.id}`}
+                      to={`/product/${product.id}`}
                       className="text-text-muted hover:text-accent transition-colors flex items-center gap-2"
                     >
                       Voir

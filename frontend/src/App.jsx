@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 // Pages
 import Home from './pages/Home';
 import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetail';
 import Editor from './pages/Editor';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
@@ -48,10 +49,11 @@ const PublicRoute = ({ children }) => {
 function AppContent() {
   const location = useLocation();
   const isEditorRoute = location.pathname.startsWith('/editor');
+  const isProductDetailRoute = location.pathname.startsWith('/product/');
 
   // Pages with new THREAD design (have their own layout)
   const fullPageRoutes = ['/', '/products', '/login', '/register', '/my-designs', '/my-orders', '/checkout', '/payment-success', '/profile', '/admin', '/admin/orders', '/admin/products'];
-  const isFullPageRoute = fullPageRoutes.includes(location.pathname);
+  const isFullPageRoute = fullPageRoutes.includes(location.pathname) || isProductDetailRoute;
 
   return (
     <>
@@ -72,6 +74,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
           <Route
             path="/login"
             element={
