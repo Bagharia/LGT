@@ -89,7 +89,7 @@ const Checkout = () => {
       <Header />
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-8 md:px-16 py-12">
+      <div className="max-w-7xl mx-auto px-8 md:px-16 pt-28 pb-12">
         {/* Title */}
         <div className="mb-12">
           <h1 className="font-space-grotesk text-4xl md:text-5xl font-bold text-white mb-4">

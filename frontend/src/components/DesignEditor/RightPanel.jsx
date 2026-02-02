@@ -1040,7 +1040,7 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, savi
                     min="0"
                     value={quantities[size]}
                     onChange={(e) => handleQuantityInput(size, e.target.value)}
-                    className="w-16 text-center font-medium text-lg border-2 border-gray-300 rounded px-2 py-1"
+                    className="w-16 text-center font-medium text-lg border-2 border-gray-300 rounded px-2 py-1 color-black"
                   />
                   <button
                     onClick={() => updateQuantity(size, 1)}

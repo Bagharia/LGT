@@ -55,8 +55,9 @@ exports.createCheckoutSession = async (req, res) => {
     });
 
     // Creer la session Stripe Checkout
+    // Methodes de paiement: carte, PayPal, Link (paiement express), Apple Pay/Google Pay (via card)
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      payment_method_types: ['card', 'paypal', 'link'],
       line_items: lineItems,
       mode: 'payment',
       success_url: process.env.FRONTEND_URL + '/payment-success?session_id={CHECKOUT_SESSION_ID}&order_id=' + order.id,

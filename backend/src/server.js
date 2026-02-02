@@ -17,6 +17,10 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true
 }));
+
+// Webhook Stripe nécessite le raw body - DOIT être AVANT express.json()
+app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+
 app.use(express.json({ limit: '10mb' })); // Pour les images en base64
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 

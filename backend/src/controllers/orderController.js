@@ -233,15 +233,17 @@ exports.updateOrderStatus = async (req, res) => {
     const orderId = parseInt(req.params.id);
     const { status } = req.body;
 
-    // Vérifier que le statut est valide
-    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-    if (!validStatuses.includes(status)) {
+    // Vérifier que le statut est valide (en majuscule comme dans le schema Prisma)
+    const validStatuses = ['PENDING', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+    const upperStatus = status.toUpperCase();
+
+    if (!validStatuses.includes(upperStatus)) {
       return res.status(400).json({ error: 'Statut invalide' });
     }
 
     const order = await prisma.order.update({
       where: { id: orderId },
-      data: { status: status },
+      data: { status: upperStatus },
       include: {
         orderDesigns: {
           include: {
