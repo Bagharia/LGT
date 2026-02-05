@@ -132,7 +132,8 @@ const Editor = () => {
     }
   };
 
-  const handleSaveDesign = async (quantities, totalPrice, finalPrice) => {
+  // Sauvegarder le design (sans créer de commande)
+  const handleSaveDesign = async () => {
     if (!frontCanvas) {
       alert('Aucun design à sauvegarder');
       return;
@@ -149,9 +150,61 @@ const Editor = () => {
 
       const designId = searchParams.get('designId');
 
+      if (designId) {
+        // Mettre à jour le design existant
+        await designsAPI.update(designId, {
+          frontDesignJson: frontJson,
+          backDesignJson: backJson,
+          frontPreviewUrl: frontPreview,
+          backPreviewUrl: backPreview,
+          name: `Design ${new Date().toLocaleDateString()}`,
+          tshirtColor: tshirtColor
+        });
+      } else {
+        // Créer un nouveau design
+        const savedDesign = await designsAPI.save({
+          productId: parseInt(productId),
+          frontDesignJson: frontJson,
+          backDesignJson: backJson,
+          frontPreviewUrl: frontPreview,
+          backPreviewUrl: backPreview,
+          name: `Design ${new Date().toLocaleDateString()}`,
+          tshirtColor: tshirtColor
+        });
+        // Mettre à jour l'URL avec le designId pour que les prochaines sauvegardes fassent un update
+        const newDesignId = savedDesign.design.id;
+        navigate(`/editor/${productId}?designId=${newDesignId}`, { replace: true });
+      }
+
+      alert('Design sauvegardé !');
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Commander le design (sauvegarder + créer commande)
+  const handleOrderDesign = async (quantities, totalPrice, finalPrice) => {
+    if (!frontCanvas) {
+      alert('Aucun design à commander');
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      const frontJson = JSON.stringify(frontCanvas.toJSON());
+      const backJson = backCanvas ? JSON.stringify(backCanvas.toJSON()) : null;
+
+      const frontPreview = frontCanvas.toDataURL({ format: 'png' });
+      const backPreview = backCanvas ? backCanvas.toDataURL({ format: 'png' }) : null;
+
+      const designId = searchParams.get('designId');
+
       let finalDesignId;
 
-      // Si on modifie un design existant, le mettre à jour
       if (designId) {
         await designsAPI.update(designId, {
           frontDesignJson: frontJson,
@@ -166,7 +219,6 @@ const Editor = () => {
         });
         finalDesignId = parseInt(designId);
       } else {
-        // Sinon, créer un nouveau design
         const savedDesign = await designsAPI.save({
           productId: parseInt(productId),
           frontDesignJson: frontJson,
@@ -182,7 +234,7 @@ const Editor = () => {
         finalDesignId = savedDesign.design.id;
       }
 
-      // Créer une nouvelle commande avec ce design (modification ou nouveau)
+      // Créer la commande
       await ordersAPI.create({
         designs: [{
           designId: finalDesignId,
@@ -194,10 +246,9 @@ const Editor = () => {
 
       alert('Commande créée avec succès !');
       navigate('/my-orders');
-
     } catch (error) {
       console.error('Erreur:', error);
-      alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
+      alert(error.response?.data?.error || 'Erreur lors de la commande');
     } finally {
       setSaving(false);
     }
@@ -389,9 +440,11 @@ const Editor = () => {
             tshirtColor={tshirtColor}
             setTshirtColor={setTshirtColor}
             onSave={handleSaveDesign}
+            onOrder={handleOrderDesign}
             saving={saving}
             activeToolSection={activeToolSection}
             setActiveToolSection={setActiveToolSection}
+            designId={searchParams.get('designId')}
           />
         </div>
       </div>

@@ -4,7 +4,7 @@ import { CANVAS_CONFIG } from './Canvas';
 
 const { PX_PER_CM, PRINT_AREA } = CANVAS_CONFIG;
 
-const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, saving, activeToolSection, setActiveToolSection }) => {
+const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, onOrder, saving, activeToolSection, setActiveToolSection, designId }) => {
   const [textValue, setTextValue] = useState('Votre texte');
   const [textColor, setTextColor] = useState('#000000');
   const [fontSize, setFontSize] = useState(40);
@@ -1079,18 +1079,27 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, savi
             </p>
           </div>
 
-          {/* Add to cart button */}
-          <button
-            className={`w-full py-4 rounded-lg font-semibold text-lg ${
-              totalArticles > 0
-                ? 'bg-cyan-400 hover:bg-cyan-500 text-white'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-            onClick={() => onSave(quantities, totalPrice, finalPrice)}
-            disabled={totalArticles === 0 || saving}
-          >
-            {saving ? 'Enregistrement...' : 'Ajouter au panier'}
-          </button>
+          {/* Save & Order buttons */}
+          <div className="space-y-3">
+            <button
+              className="w-full py-3 rounded-lg font-semibold text-lg border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400/10 transition-colors"
+              onClick={() => onSave()}
+              disabled={saving}
+            >
+              {saving ? 'Enregistrement...' : (designId ? 'Sauvegarder' : 'Sauvegarder le design')}
+            </button>
+            <button
+              className={`w-full py-4 rounded-lg font-semibold text-lg ${
+                totalArticles > 0
+                  ? 'bg-cyan-400 hover:bg-cyan-500 text-white'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+              onClick={() => onOrder(quantities, totalPrice, finalPrice)}
+              disabled={totalArticles === 0 || saving}
+            >
+              {saving ? 'Enregistrement...' : 'Commander'}
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -212,6 +212,9 @@ exports.getAllOrders = async (req, res) => {
         name: od.design.name,
         frontPreviewUrl: od.design.frontPreviewUrl,
         backPreviewUrl: od.design.backPreviewUrl,
+        frontDesignJson: od.design.frontDesignJson,
+        backDesignJson: od.design.backDesignJson,
+        tshirtColor: od.design.tshirtColor,
         quantities: od.quantities,
         finalPrice: od.finalPrice,
         product: od.design.product

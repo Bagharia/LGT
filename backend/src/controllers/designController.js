@@ -13,7 +13,11 @@ exports.saveDesign = async (req, res) => {
       backDesignJson,
       frontPreviewUrl,
       backPreviewUrl,
-      name
+      name,
+      quantities,
+      totalPrice,
+      finalPrice,
+      tshirtColor
     } = req.body;
 
     // Validation
@@ -43,7 +47,11 @@ exports.saveDesign = async (req, res) => {
         backDesignJson: backDesignJson || null,
         frontPreviewUrl: frontPreviewUrl || null,
         backPreviewUrl: backPreviewUrl || null,
-        name: name || 'Mon design'
+        name: name || 'Mon design',
+        quantities: quantities || null,
+        totalPrice: totalPrice || null,
+        finalPrice: finalPrice || null,
+        tshirtColor: tshirtColor || null
       },
       include: {
         product: true
@@ -137,7 +145,11 @@ exports.updateDesign = async (req, res) => {
       backDesignJson,
       frontPreviewUrl,
       backPreviewUrl,
-      name
+      name,
+      quantities,
+      totalPrice,
+      finalPrice,
+      tshirtColor
     } = req.body;
 
     // Vérifier que le design existe et appartient à l'utilisateur
@@ -164,6 +176,10 @@ exports.updateDesign = async (req, res) => {
     if (frontPreviewUrl !== undefined) updateData.frontPreviewUrl = frontPreviewUrl;
     if (backPreviewUrl !== undefined) updateData.backPreviewUrl = backPreviewUrl;
     if (name !== undefined) updateData.name = name;
+    if (quantities !== undefined) updateData.quantities = quantities;
+    if (totalPrice !== undefined) updateData.totalPrice = totalPrice;
+    if (finalPrice !== undefined) updateData.finalPrice = finalPrice;
+    if (tshirtColor !== undefined) updateData.tshirtColor = tshirtColor;
 
     // Mettre à jour le design
     const design = await prisma.design.update({
