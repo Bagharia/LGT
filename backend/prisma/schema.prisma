@@ -34,7 +34,7 @@ enum Role {
 // Modèle pour les produits (t-shirts de base)
 model Product {
   id          Int      @id @default(autoincrement())
-  name        String
+  name        String   @unique
   description String?
   basePrice   Float    // Prix de base du t-shirt
   isActive    Boolean  @default(true)
