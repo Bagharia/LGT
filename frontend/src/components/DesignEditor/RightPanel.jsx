@@ -449,7 +449,7 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, onOr
 
   // Calculer le total d'articles et prix
   const totalArticles = Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
-  const pricePerItem = 35.99;
+  const pricePerItem = product?.basePrice || 0.01;
   const totalPrice = totalArticles * pricePerItem;
 
   // Appliquer réduction si >= 6 articles

@@ -235,7 +235,7 @@ const Editor = () => {
       }
 
       // Créer la commande
-      await ordersAPI.create({
+      const orderResult = await ordersAPI.create({
         designs: [{
           designId: finalDesignId,
           quantities: quantities,
@@ -244,8 +244,8 @@ const Editor = () => {
         totalPrice: finalPrice
       });
 
-      alert('Commande créée avec succès !');
-      navigate('/my-orders');
+      // Rediriger vers le checkout pour le paiement
+      navigate(`/checkout?orderId=${orderResult.order.id}`);
     } catch (error) {
       console.error('Erreur:', error);
       alert(error.response?.data?.error || 'Erreur lors de la commande');

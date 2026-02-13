@@ -157,7 +157,26 @@ exports.getOrderById = async (req, res) => {
       return res.status(404).json({ error: 'Commande non trouvée' });
     }
 
-    res.json({ order });
+    // Formater pour le frontend
+    const formattedOrder = {
+      id: order.id,
+      userId: order.userId,
+      totalPrice: order.totalPrice,
+      status: order.status,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      designs: order.orderDesigns.map(od => ({
+        id: od.design.id,
+        name: od.design.name,
+        frontPreviewUrl: od.design.frontPreviewUrl,
+        backPreviewUrl: od.design.backPreviewUrl,
+        quantities: od.quantities,
+        finalPrice: od.finalPrice,
+        product: od.design.product
+      }))
+    };
+
+    res.json({ order: formattedOrder });
   } catch (error) {
     console.error('Erreur lors de la récupération de la commande:', error);
     res.status(500).json({ error: 'Erreur lors de la récupération de la commande' });
