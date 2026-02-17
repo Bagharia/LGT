@@ -31,21 +31,41 @@ enum Role {
   ADMIN
 }
 
-// Modèle pour les produits (t-shirts de base)
+// Modèle pour les catégories de produits
+model Category {
+  id           Int       @id @default(autoincrement())
+  name         String    @unique
+  slug         String    @unique
+  displayOrder Int       @default(0)
+  hasTwoSides  Boolean   @default(true) // true = recto/verso (t-shirts), false = recto seul (posters)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  products     Product[]
+
+  @@map("categories")
+}
+
+// Modèle pour les produits
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
-  basePrice   Float    // Prix de base du t-shirt
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  description  String?
+  basePrice    Float
+  isActive     Boolean  @default(true)
+  displayOrder Int      @default(0)
+  categoryId   Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // URLs des mockups pour prévisualisation
   mockupFrontUrl String?
   mockupBackUrl  String?
 
   // Relations
+  category   Category?  @relation(fields: [categoryId], references: [id])
   designs    Design[]
   orderItems OrderItem[]
 

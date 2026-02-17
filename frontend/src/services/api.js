@@ -86,6 +86,40 @@ export const authAPI = {
   },
 };
 
+// ==================== CATEGORIES ====================
+
+export const categoriesAPI = {
+  getAll: async () => {
+    const response = await api.get('/categories');
+    return response.data;
+  },
+
+  getAllAdmin: async () => {
+    const response = await api.get('/categories/admin/all');
+    return response.data;
+  },
+
+  create: async (data) => {
+    const response = await api.post('/categories', data);
+    return response.data;
+  },
+
+  update: async (id, data) => {
+    const response = await api.put(`/categories/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id) => {
+    const response = await api.delete(`/categories/${id}`);
+    return response.data;
+  },
+
+  reorder: async (items) => {
+    const response = await api.put('/categories/reorder', { items });
+    return response.data;
+  },
+};
+
 // ==================== PRODUCTS ====================
 
 export const productsAPI = {
@@ -122,6 +156,12 @@ export const productsAPI = {
   // Supprimer (désactiver) un produit (admin)
   delete: async (id) => {
     const response = await api.delete(`/products/${id}`);
+    return response.data;
+  },
+
+  // Réordonner les produits (admin)
+  reorder: async (items) => {
+    const response = await api.put('/products/reorder', { items });
     return response.data;
   },
 };

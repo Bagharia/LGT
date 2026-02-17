@@ -1,31 +1,37 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { productsAPI } from '../../services/api';
+import { productsAPI, categoriesAPI } from '../../services/api';
 import Header from '../../components/Header';
 import ImageUpload from '../../components/ImageUpload';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [filterCategory, setFilterCategory] = useState('all');
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     basePrice: '',
-    spreadshirtProductId: '',
+    categoryId: '',
     mockupFrontUrl: '',
     mockupBackUrl: ''
   });
 
   useEffect(() => {
-    loadProducts();
+    loadData();
   }, []);
 
-  const loadProducts = async () => {
+  const loadData = async () => {
     try {
-      const data = await productsAPI.getAllAdmin();
-      setProducts(data.products || []);
+      const [productsData, categoriesData] = await Promise.all([
+        productsAPI.getAllAdmin(),
+        categoriesAPI.getAllAdmin()
+      ]);
+      setProducts(productsData.products || []);
+      setCategories(categoriesData.categories || []);
       setLoading(false);
     } catch (error) {
       console.error('Erreur:', error);
@@ -39,7 +45,7 @@ const AdminProducts = () => {
       const productData = {
         ...formData,
         basePrice: parseFloat(formData.basePrice),
-        spreadshirtProductId: parseInt(formData.spreadshirtProductId)
+        categoryId: formData.categoryId ? parseInt(formData.categoryId) : null
       };
 
       if (editingProduct) {
@@ -50,19 +56,23 @@ const AdminProducts = () => {
 
       setShowModal(false);
       setEditingProduct(null);
-      setFormData({
-        name: '',
-        description: '',
-        basePrice: '',
-        spreadshirtProductId: '',
-        mockupFrontUrl: '',
-        mockupBackUrl: ''
-      });
-      loadProducts();
+      resetForm();
+      loadData();
     } catch (error) {
       console.error('Erreur:', error);
       alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      basePrice: '',
+      categoryId: '',
+      mockupFrontUrl: '',
+      mockupBackUrl: ''
+    });
   };
 
   const handleEdit = (product) => {
@@ -71,7 +81,7 @@ const AdminProducts = () => {
       name: product.name,
       description: product.description || '',
       basePrice: product.basePrice.toString(),
-      spreadshirtProductId: product.spreadshirtProductId?.toString() || '',
+      categoryId: product.categoryId?.toString() || '',
       mockupFrontUrl: product.mockupFrontUrl || '',
       mockupBackUrl: product.mockupBackUrl || ''
     });
@@ -79,17 +89,55 @@ const AdminProducts = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Êtes-vous sûr de vouloir désactiver ce produit ?')) {
-      return;
-    }
+    if (!confirm('Êtes-vous sûr de vouloir désactiver ce produit ?')) return;
     try {
       await productsAPI.delete(id);
-      loadProducts();
+      loadData();
     } catch (error) {
       console.error('Erreur:', error);
       alert('Erreur lors de la suppression');
     }
   };
+
+  const moveProduct = async (index, direction) => {
+    const filtered = filteredProducts;
+    const swapIndex = index + direction;
+    if (swapIndex < 0 || swapIndex >= filtered.length) return;
+
+    const newProducts = [...products];
+    const productA = filtered[index];
+    const productB = filtered[swapIndex];
+
+    // Swap displayOrder values
+    const idxA = newProducts.findIndex(p => p.id === productA.id);
+    const idxB = newProducts.findIndex(p => p.id === productB.id);
+    const tempOrder = newProducts[idxA].displayOrder;
+    newProducts[idxA] = { ...newProducts[idxA], displayOrder: newProducts[idxB].displayOrder };
+    newProducts[idxB] = { ...newProducts[idxB], displayOrder: tempOrder };
+
+    setProducts(newProducts);
+
+    try {
+      await productsAPI.reorder([
+        { id: productA.id, displayOrder: newProducts[idxA].displayOrder },
+        { id: productB.id, displayOrder: newProducts[idxB].displayOrder }
+      ]);
+    } catch (error) {
+      console.error('Erreur:', error);
+      loadData();
+    }
+  };
+
+  const getCategoryName = (categoryId) => {
+    const cat = categories.find(c => c.id === categoryId);
+    return cat?.name || 'Sans catégorie';
+  };
+
+  const filteredProducts = filterCategory === 'all'
+    ? [...products].sort((a, b) => a.displayOrder - b.displayOrder)
+    : filterCategory === 'none'
+      ? [...products].filter(p => !p.categoryId).sort((a, b) => a.displayOrder - b.displayOrder)
+      : [...products].filter(p => p.categoryId === parseInt(filterCategory)).sort((a, b) => a.displayOrder - b.displayOrder);
 
   if (loading) {
     return (
@@ -104,10 +152,8 @@ const AdminProducts = () => {
 
   return (
     <div className="min-h-screen bg-primary">
-      {/* Header */}
       <Header />
 
-      {/* Main Content */}
       <div className="px-8 md:px-16 py-12 pt-24">
         {/* Page Title */}
         <div className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
@@ -128,14 +174,7 @@ const AdminProducts = () => {
           <button
             onClick={() => {
               setEditingProduct(null);
-              setFormData({
-                name: '',
-                description: '',
-                basePrice: '',
-                spreadshirtProductId: '',
-                mockupFrontUrl: '',
-                mockupBackUrl: ''
-              });
+              resetForm();
               setShowModal(true);
             }}
             className="btn-primary self-start md:self-auto"
@@ -147,8 +186,50 @@ const AdminProducts = () => {
           </button>
         </div>
 
+        {/* Category Filter Tabs */}
+        {categories.length > 0 && (
+          <div className="flex gap-3 mb-8 flex-wrap">
+            <button
+              onClick={() => setFilterCategory('all')}
+              className={`px-5 py-2 rounded-full font-medium text-sm transition-colors ${
+                filterCategory === 'all'
+                  ? 'bg-accent text-primary'
+                  : 'bg-white/5 text-text-muted hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Tous ({products.length})
+            </button>
+            {categories.map(cat => {
+              const count = products.filter(p => p.categoryId === cat.id).length;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setFilterCategory(cat.id.toString())}
+                  className={`px-5 py-2 rounded-full font-medium text-sm transition-colors ${
+                    filterCategory === cat.id.toString()
+                      ? 'bg-accent text-primary'
+                      : 'bg-white/5 text-text-muted hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  {cat.name} ({count})
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setFilterCategory('none')}
+              className={`px-5 py-2 rounded-full font-medium text-sm transition-colors ${
+                filterCategory === 'none'
+                  ? 'bg-accent text-primary'
+                  : 'bg-white/5 text-text-muted hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Sans catégorie ({products.filter(p => !p.categoryId).length})
+            </button>
+          </div>
+        )}
+
         {/* Products Grid */}
-        {products.length === 0 ? (
+        {filteredProducts.length === 0 ? (
           <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-12 text-center">
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-white/5 flex items-center justify-center">
               <svg className="w-10 h-10 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,13 +241,13 @@ const AdminProducts = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
+            {filteredProducts.map((product, index) => (
               <div
                 key={product.id}
                 className="group bg-[#0D2137] rounded-2xl border border-white/10 overflow-hidden hover:border-accent/50 transition-all duration-300"
               >
                 {/* Product Image */}
-                <div className="aspect-square bg-[#0A1931] flex items-center justify-center overflow-hidden">
+                <div className="aspect-square bg-[#0A1931] flex items-center justify-center overflow-hidden relative">
                   {product.mockupFrontUrl ? (
                     <img
                       src={product.mockupFrontUrl}
@@ -178,11 +259,32 @@ const AdminProducts = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
                   )}
+                  {/* Reorder buttons */}
+                  <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => moveProduct(index, -1)}
+                      disabled={index === 0}
+                      className="w-7 h-7 rounded-lg bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-accent/80 transition-colors disabled:opacity-30"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => moveProduct(index, 1)}
+                      disabled={index === filteredProducts.length - 1}
+                      className="w-7 h-7 rounded-lg bg-black/60 backdrop-blur-sm flex items-center justify-center text-white hover:bg-accent/80 transition-colors disabled:opacity-30"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Product Info */}
                 <div className="p-5">
-                  <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex items-start justify-between gap-3 mb-2">
                     <h3 className="font-space-grotesk text-lg font-semibold text-white">
                       {product.name}
                     </h3>
@@ -195,19 +297,24 @@ const AdminProducts = () => {
                     </span>
                   </div>
 
+                  {/* Category Badge */}
+                  <div className="mb-3">
+                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium ${
+                      product.categoryId
+                        ? 'bg-accent/10 text-accent border border-accent/20'
+                        : 'bg-white/5 text-text-muted border border-white/10'
+                    }`}>
+                      {getCategoryName(product.categoryId)}
+                    </span>
+                  </div>
+
                   <p className="text-text-muted text-sm mb-4 line-clamp-2">
                     {product.description || 'Pas de description'}
                   </p>
 
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <p className="text-text-muted text-xs">Prix de base</p>
-                      <p className="text-accent font-bold text-xl">{product.basePrice.toFixed(2)} €</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-text-muted text-xs">ID Spreadshirt</p>
-                      <p className="text-white font-medium">{product.spreadshirtProductId || 'N/A'}</p>
-                    </div>
+                  <div className="mb-4">
+                    <p className="text-text-muted text-xs">Prix de base</p>
+                    <p className="text-accent font-bold text-xl">{product.basePrice.toFixed(2)} €</p>
                   </div>
 
                   <div className="flex gap-2">
@@ -276,6 +383,25 @@ const AdminProducts = () => {
 
               <div>
                 <label className="block text-sm font-medium text-text-muted mb-2">
+                  Catégorie <span className="text-accent">*</span>
+                </label>
+                <select
+                  required
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-accent transition-colors"
+                >
+                  <option value="" className="bg-[#0D2137]">Sélectionner une catégorie</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id} className="bg-[#0D2137]">
+                      {cat.name} {cat.hasTwoSides ? '(Recto/Verso)' : '(Recto seul)'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-muted mb-2">
                   Description
                 </label>
                 <textarea
@@ -287,35 +413,19 @@ const AdminProducts = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-text-muted mb-2">
-                    Prix de base (€) <span className="text-accent">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={formData.basePrice}
-                    onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-text-muted focus:outline-none focus:border-accent transition-colors"
-                    placeholder="35.99"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-text-muted mb-2">
-                    ID Spreadshirt <span className="text-accent">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.spreadshirtProductId}
-                    onChange={(e) => setFormData({ ...formData, spreadshirtProductId: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-text-muted focus:outline-none focus:border-accent transition-colors"
-                    placeholder="812"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-text-muted mb-2">
+                  Prix de base (€) <span className="text-accent">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  required
+                  value={formData.basePrice}
+                  onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-text-muted focus:outline-none focus:border-accent transition-colors"
+                  placeholder="35.99"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">

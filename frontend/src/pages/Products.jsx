@@ -1,34 +1,41 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { productsAPI } from '../services/api';
+import { categoriesAPI } from '../services/api';
 import Header from '../components/Header';
 
 const Products = () => {
-  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [activeCategory, setActiveCategory] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadProducts();
+    loadCategories();
   }, []);
 
-  const loadProducts = async () => {
+  const loadCategories = async () => {
     try {
-      const data = await productsAPI.getAll();
-      setProducts(data.products);
+      const data = await categoriesAPI.getAll();
+      const cats = data.categories || [];
+      setCategories(cats);
+      if (cats.length > 0) {
+        setActiveCategory(cats[0].id);
+      }
       setLoading(false);
     } catch (error) {
-      console.error('Erreur lors du chargement des produits:', error);
+      console.error('Erreur lors du chargement:', error);
       setLoading(false);
     }
   };
 
+  const activeCategoryData = categories.find(c => c.id === activeCategory);
+  const visibleProducts = activeCategoryData?.products || [];
+
   return (
     <div className="min-h-screen bg-primary">
-      {/* Header */}
       <Header />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-8 md:px-16">
+      <section className="pt-32 pb-12 px-8 md:px-16">
         <div className="max-w-4xl">
           <div className="hero-tag mb-6">
             Collection 2026
@@ -37,11 +44,32 @@ const Products = () => {
             Notre <span className="accent">Collection</span>
           </h1>
           <p className="text-xl text-text-muted max-w-2xl">
-            Choisissez votre t-shirt et personnalisez-le selon vos envies.
+            Choisissez votre produit et personnalisez-le selon vos envies.
             Qualité premium, designs uniques.
           </p>
         </div>
       </section>
+
+      {/* Category Tabs */}
+      {!loading && categories.length > 1 && (
+        <section className="px-8 md:px-16 pb-8">
+          <div className="flex gap-3 flex-wrap">
+            {categories.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+                  activeCategory === cat.id
+                    ? 'bg-accent text-primary shadow-lg shadow-accent/30'
+                    : 'bg-white/5 text-text-muted hover:text-white hover:bg-white/10 border border-white/10'
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Products Grid */}
       <section className="px-8 md:px-16 pb-32">
@@ -49,9 +77,9 @@ const Products = () => {
           <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-2 border-accent border-t-transparent"></div>
           </div>
-        ) : (
+        ) : visibleProducts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {products.map((product, index) => (
+            {visibleProducts.map((product, index) => (
               <div
                 key={product.id}
                 className="product-card group"
@@ -73,7 +101,7 @@ const Products = () => {
                 </Link>
 
                 {/* Product Info */}
-                <div className="pt-5">
+                <div className="p-5">
                   <h3 className="font-space-grotesk text-xl font-semibold text-white mb-2">
                     {product.name}
                   </h3>
@@ -82,7 +110,7 @@ const Products = () => {
                   </p>
                   <div className="flex justify-between items-center">
                     <span className="text-2xl font-bold text-accent">
-                      {product.basePrice.toFixed(2)} EUR
+                      {product.basePrice.toFixed(2)} €
                     </span>
                     <Link
                       to={`/product/${product.id}`}
@@ -98,9 +126,7 @@ const Products = () => {
               </div>
             ))}
           </div>
-        )}
-
-        {!loading && products.length === 0 && (
+        ) : (
           <div className="text-center py-20">
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#0D2137] flex items-center justify-center">
               <svg className="w-10 h-10 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">

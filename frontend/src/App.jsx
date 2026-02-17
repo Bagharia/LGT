@@ -16,6 +16,7 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminOrders from './pages/admin/Orders';
 import AdminProducts from './pages/admin/Products';
+import AdminCategories from './pages/admin/Categories';
 
 // User Pages
 import Profile from './pages/user/Profile';
@@ -52,7 +53,7 @@ function AppContent() {
   const isProductDetailRoute = location.pathname.startsWith('/product/');
 
   // Pages with new THREAD design (have their own layout)
-  const fullPageRoutes = ['/', '/products', '/login', '/register', '/my-designs', '/my-orders', '/checkout', '/payment-success', '/profile', '/admin', '/admin/orders', '/admin/products'];
+  const fullPageRoutes = ['/', '/products', '/login', '/register', '/my-designs', '/my-orders', '/checkout', '/payment-success', '/profile', '/admin', '/admin/orders', '/admin/products', '/admin/categories'];
   const isFullPageRoute = fullPageRoutes.includes(location.pathname) || isProductDetailRoute;
 
   return (
@@ -153,6 +154,14 @@ function AppContent() {
             element={
               <ProtectedRoute requireAdmin={true}>
                 <AdminProducts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/categories"
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <AdminCategories />
               </ProtectedRoute>
             }
           />

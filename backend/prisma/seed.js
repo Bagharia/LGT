@@ -44,7 +44,36 @@ async function main() {
 
   console.log(' Utilisateur test créé:', user.email);
 
-  // 3. Créer des produits (t-shirts)
+  // 3. Créer les catégories
+  console.log('\n Création des catégories...');
+
+  const tshirtCategory = await prisma.category.upsert({
+    where: { slug: 't-shirts' },
+    update: {},
+    create: {
+      name: 'T-Shirts',
+      slug: 't-shirts',
+      displayOrder: 0,
+      hasTwoSides: true,
+      isActive: true
+    }
+  });
+  console.log(` Catégorie: ${tshirtCategory.name}`);
+
+  const posterCategory = await prisma.category.upsert({
+    where: { slug: 'posters' },
+    update: {},
+    create: {
+      name: 'Posters',
+      slug: 'posters',
+      displayOrder: 1,
+      hasTwoSides: false,
+      isActive: true
+    }
+  });
+  console.log(` Catégorie: ${posterCategory.name}`);
+
+  // 4. Créer des produits (t-shirts)
   console.log('\n Création des produits...');
 
   const products = [
@@ -54,7 +83,9 @@ async function main() {
       basePrice: 1.00,
       mockupFrontUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=1200&q=90&fit=crop',
       mockupBackUrl: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=1200&q=90&fit=crop',
-      isActive: true
+      isActive: true,
+      categoryId: tshirtCategory.id,
+      displayOrder: 0
     },
     {
       name: 'T-Shirt Classique Blanc',
@@ -62,7 +93,9 @@ async function main() {
       basePrice: 1.00,
       mockupFrontUrl: 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=1200&q=90&fit=crop',
       mockupBackUrl: 'https://images.unsplash.com/photo-1562157873-818bc0726f68?w=1200&q=90&fit=crop',
-      isActive: true
+      isActive: true,
+      categoryId: tshirtCategory.id,
+      displayOrder: 1
     },
     {
       name: 'T-Shirt Premium Noir',
@@ -70,7 +103,9 @@ async function main() {
       basePrice: 1.00,
       mockupFrontUrl: 'https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=1200&q=90&fit=crop',
       mockupBackUrl: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=1200&q=90&fit=crop',
-      isActive: true
+      isActive: true,
+      categoryId: tshirtCategory.id,
+      displayOrder: 2
     },
     {
       name: 'T-Shirt Premium Blanc',
@@ -78,14 +113,16 @@ async function main() {
       basePrice: 1.00,
       mockupFrontUrl: 'https://images.unsplash.com/photo-1622445275576-721325763afe?w=1200&q=90&fit=crop',
       mockupBackUrl: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=1200&q=90&fit=crop',
-      isActive: true
+      isActive: true,
+      categoryId: tshirtCategory.id,
+      displayOrder: 3
     }
   ];
 
   for (const productData of products) {
     const product = await prisma.product.upsert({
       where: { name: productData.name },
-      update: { basePrice: productData.basePrice },
+      update: { basePrice: productData.basePrice, categoryId: productData.categoryId, displayOrder: productData.displayOrder },
       create: productData
     });
     console.log(` Produit: ${product.name} - ${product.basePrice}€`);

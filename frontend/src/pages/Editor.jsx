@@ -21,12 +21,14 @@ const Editor = () => {
   const [designLoaded, setDesignLoaded] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
 
+  const isTwoSided = product?.category?.hasTwoSides ?? true;
+
   // Ajouter du texte automatiquement quand on clique sur le bouton Texte
   const handleTextClick = () => {
     setActiveToolSection('text');
 
     // Ajouter du texte au canvas actif
-    const canvas = activeSide === 'front' ? frontCanvas : backCanvas;
+    const canvas = activeSide === 'front' ? frontCanvas : (isTwoSided ? backCanvas : frontCanvas);
     if (canvas) {
       const text = new fabric.IText('Votre texte', {
         left: 250,
@@ -49,11 +51,12 @@ const Editor = () => {
   // Charger le design si un designId est fourni dans l'URL
   useEffect(() => {
     const designId = searchParams.get('designId');
-    if (designId && frontCanvas && backCanvas && !designLoaded) {
+    const canvasesReady = frontCanvas && (isTwoSided ? backCanvas : true);
+    if (designId && canvasesReady && !designLoaded) {
       loadDesign(designId);
       setDesignLoaded(true);
     }
-  }, [searchParams, frontCanvas, backCanvas, designLoaded]); // Ajouter les canvas pour déclencher le chargement quand ils sont prêts
+  }, [searchParams, frontCanvas, backCanvas, designLoaded, isTwoSided]);
 
   const loadDesign = async (designId) => {
     try {
@@ -123,6 +126,10 @@ const Editor = () => {
       setLoading(true);
       const data = await productsAPI.getById(productId);
       setProduct(data.product);
+      // Reset to front for single-sided products
+      if (!data.product?.category?.hasTwoSides) {
+        setActiveSide('front');
+      }
     } catch (error) {
       console.error('Erreur:', error);
       alert('Produit non trouvé');
@@ -143,10 +150,10 @@ const Editor = () => {
       setSaving(true);
 
       const frontJson = JSON.stringify(frontCanvas.toJSON());
-      const backJson = backCanvas ? JSON.stringify(backCanvas.toJSON()) : null;
+      const backJson = isTwoSided && backCanvas ? JSON.stringify(backCanvas.toJSON()) : null;
 
       const frontPreview = frontCanvas.toDataURL({ format: 'png' });
-      const backPreview = backCanvas ? backCanvas.toDataURL({ format: 'png' }) : null;
+      const backPreview = isTwoSided && backCanvas ? backCanvas.toDataURL({ format: 'png' }) : null;
 
       const designId = searchParams.get('designId');
 
@@ -196,10 +203,10 @@ const Editor = () => {
       setSaving(true);
 
       const frontJson = JSON.stringify(frontCanvas.toJSON());
-      const backJson = backCanvas ? JSON.stringify(backCanvas.toJSON()) : null;
+      const backJson = isTwoSided && backCanvas ? JSON.stringify(backCanvas.toJSON()) : null;
 
       const frontPreview = frontCanvas.toDataURL({ format: 'png' });
-      const backPreview = backCanvas ? backCanvas.toDataURL({ format: 'png' }) : null;
+      const backPreview = isTwoSided && backCanvas ? backCanvas.toDataURL({ format: 'png' }) : null;
 
       const designId = searchParams.get('designId');
 
@@ -389,53 +396,57 @@ const Editor = () => {
               />
             </div>
 
-            {/* Canvas Dos */}
-            <div style={{ display: activeSide === 'back' ? 'block' : 'none' }}>
-              <DesignCanvas
-                side="back"
-                mockupUrl={product.mockupBackUrl}
-                onCanvasReady={setBackCanvas}
-                tshirtColor={tshirtColor}
-                showGrid={showGrid}
-              />
-            </div>
+            {/* Canvas Dos (uniquement pour les produits recto/verso) */}
+            {isTwoSided && (
+              <div style={{ display: activeSide === 'back' ? 'block' : 'none' }}>
+                <DesignCanvas
+                  side="back"
+                  mockupUrl={product.mockupBackUrl}
+                  onCanvasReady={setBackCanvas}
+                  tshirtColor={tshirtColor}
+                  showGrid={showGrid}
+                />
+              </div>
+            )}
           </div>
 
-          {/* Onglets en bas */}
-          <div className="tshirt-tabs">
-            <button
-              className={`tshirt-tab ${activeSide === 'front' ? 'active' : ''}`}
-              onClick={() => setActiveSide('front')}
-            >
-              <div className="tab-preview">
-                <img
-                  src={`https://image.spreadshirtmedia.net/image-server/v1/productTypes/812/views/1/appearances/${tshirtColor === '#FFFFFF' ? '1' : '2'},width=178,height=178`}
-                  alt="Devant"
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                />
-              </div>
-              <span>Devant</span>
-            </button>
-            <button
-              className={`tshirt-tab ${activeSide === 'back' ? 'active' : ''}`}
-              onClick={() => setActiveSide('back')}
-            >
-              <div className="tab-preview">
-                <img
-                  src={`https://image.spreadshirtmedia.net/image-server/v1/productTypes/812/views/2/appearances/${tshirtColor === '#FFFFFF' ? '1' : '2'},width=178,height=178`}
-                  alt="Dos"
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                />
-              </div>
-              <span>Dos</span>
-            </button>
-          </div>
+          {/* Onglets en bas (uniquement si recto/verso) */}
+          {isTwoSided && (
+            <div className="tshirt-tabs">
+              <button
+                className={`tshirt-tab ${activeSide === 'front' ? 'active' : ''}`}
+                onClick={() => setActiveSide('front')}
+              >
+                <div className="tab-preview">
+                  <img
+                    src={`https://image.spreadshirtmedia.net/image-server/v1/productTypes/812/views/1/appearances/${tshirtColor === '#FFFFFF' ? '1' : '2'},width=178,height=178`}
+                    alt="Devant"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                </div>
+                <span>Devant</span>
+              </button>
+              <button
+                className={`tshirt-tab ${activeSide === 'back' ? 'active' : ''}`}
+                onClick={() => setActiveSide('back')}
+              >
+                <div className="tab-preview">
+                  <img
+                    src={`https://image.spreadshirtmedia.net/image-server/v1/productTypes/812/views/2/appearances/${tshirtColor === '#FFFFFF' ? '1' : '2'},width=178,height=178`}
+                    alt="Dos"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                </div>
+                <span>Dos</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Div Panel - Panneau de droite */}
         <div className="editor-panel-right">
           <RightPanel
-            canvas={activeSide === 'front' ? frontCanvas : backCanvas}
+            canvas={activeSide === 'front' || !isTwoSided ? frontCanvas : backCanvas}
             product={product}
             tshirtColor={tshirtColor}
             setTshirtColor={setTshirtColor}

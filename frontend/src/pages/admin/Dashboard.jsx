@@ -162,26 +162,23 @@ const AdminDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <Link
             to="/admin/orders"
             className="group bg-[#0D2137] rounded-2xl border border-white/10 p-8 hover:border-accent/50 transition-all duration-300"
           >
             <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent to-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent to-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
                 <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
               </div>
               <div>
-                <h3 className="font-space-grotesk text-2xl font-bold text-white mb-2 group-hover:text-accent transition-colors">
-                  Gérer les Commandes
+                <h3 className="font-space-grotesk text-xl font-bold text-white mb-1 group-hover:text-accent transition-colors">
+                  Commandes
                 </h3>
-                <p className="text-text-muted">Voir et modifier le statut des commandes</p>
+                <p className="text-text-muted text-sm">Voir et modifier les statuts</p>
               </div>
-              <svg className="w-6 h-6 text-text-muted ml-auto group-hover:text-accent group-hover:translate-x-2 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
             </div>
           </Link>
 
@@ -190,20 +187,36 @@ const AdminDashboard = () => {
             className="group bg-[#0D2137] rounded-2xl border border-white/10 p-8 hover:border-accent/50 transition-all duration-300"
           >
             <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-accent flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-accent flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
                 <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </div>
               <div>
-                <h3 className="font-space-grotesk text-2xl font-bold text-white mb-2 group-hover:text-accent transition-colors">
-                  Gérer les Produits
+                <h3 className="font-space-grotesk text-xl font-bold text-white mb-1 group-hover:text-accent transition-colors">
+                  Produits
                 </h3>
-                <p className="text-text-muted">Ajouter et modifier les produits</p>
+                <p className="text-text-muted text-sm">Ajouter et modifier les produits</p>
               </div>
-              <svg className="w-6 h-6 text-text-muted ml-auto group-hover:text-accent group-hover:translate-x-2 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+            </div>
+          </Link>
+
+          <Link
+            to="/admin/categories"
+            className="group bg-[#0D2137] rounded-2xl border border-white/10 p-8 hover:border-accent/50 transition-all duration-300"
+          >
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-400 to-accent flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-space-grotesk text-xl font-bold text-white mb-1 group-hover:text-accent transition-colors">
+                  Catégories
+                </h3>
+                <p className="text-text-muted text-sm">Organiser les types de produits</p>
+              </div>
             </div>
           </Link>
         </div>
