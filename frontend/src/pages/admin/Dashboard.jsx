@@ -105,7 +105,7 @@ const AdminDashboard = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {/* Total Commandes */}
-          <div className="bg-[#111] rounded-2xl border border-white/10 p-6 hover:border-accent/30 transition-colors">
+          <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-6 hover:border-accent/30 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,7 +119,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* En Attente */}
-          <div className="bg-[#111] rounded-2xl border border-white/10 p-6 hover:border-yellow-500/30 transition-colors">
+          <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-6 hover:border-yellow-500/30 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center">
                 <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,7 +133,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* Payées */}
-          <div className="bg-[#111] rounded-2xl border border-white/10 p-6 hover:border-accent/30 transition-colors">
+          <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-6 hover:border-accent/30 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
                 <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,7 +147,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* Revenu */}
-          <div className="bg-[#111] rounded-2xl border border-white/10 p-6 hover:border-green-500/30 transition-colors">
+          <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-6 hover:border-green-500/30 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
                 <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,7 +165,7 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           <Link
             to="/admin/orders"
-            className="group bg-[#111] rounded-2xl border border-white/10 p-8 hover:border-accent/50 transition-all duration-300"
+            className="group bg-[#0D2137] rounded-2xl border border-white/10 p-8 hover:border-accent/50 transition-all duration-300"
           >
             <div className="flex items-center gap-6">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent to-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -187,7 +187,7 @@ const AdminDashboard = () => {
 
           <Link
             to="/admin/products"
-            className="group bg-[#111] rounded-2xl border border-white/10 p-8 hover:border-accent/50 transition-all duration-300"
+            className="group bg-[#0D2137] rounded-2xl border border-white/10 p-8 hover:border-accent/50 transition-all duration-300"
           >
             <div className="flex items-center gap-6">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400 to-accent flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -209,7 +209,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Recent Orders */}
-        <div className="bg-[#111] rounded-2xl border border-white/10 overflow-hidden">
+        <div className="bg-[#0D2137] rounded-2xl border border-white/10 overflow-hidden">
           <div className="p-6 border-b border-white/10 flex justify-between items-center">
             <div>
               <h2 className="font-space-grotesk text-2xl font-bold text-white">Commandes Récentes</h2>
@@ -314,7 +314,7 @@ const AdminDashboard = () => {
           onClick={() => setSelectedOrder(null)}
         >
           <div
-            className="bg-[#111] border border-white/10 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-[#0D2137] border border-white/10 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}

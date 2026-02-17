@@ -155,7 +155,7 @@ const Checkout = () => {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
           {/* Form Section */}
           <div className="lg:col-span-3">
-            <div className="bg-[#111] rounded-2xl border border-white/10 p-8">
+            <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-8">
               <h2 className="font-space-grotesk text-2xl font-bold text-white mb-8">
                 Informations de livraison
               </h2>
@@ -304,7 +304,7 @@ const Checkout = () => {
 
           {/* Order Summary */}
           <div className="lg:col-span-2">
-            <div className="bg-[#111] rounded-2xl border border-white/10 p-8 sticky top-8">
+            <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-8 sticky top-8">
               <h2 className="font-space-grotesk text-2xl font-bold text-white mb-8">
                 Récapitulatif
               </h2>

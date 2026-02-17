@@ -21,7 +21,7 @@ const Header = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 w-full px-6 md:px-16 py-4 flex justify-between items-center z-50 bg-primary/80 backdrop-blur-md border-b border-white/5">
+    <header className="fixed top-0 left-0 w-full px-6 md:px-16 py-4 flex justify-between items-center z-50 backdrop-blur-md border-b" style={{ background: 'rgba(10, 25, 49, 0.75)', borderColor: 'rgba(0, 210, 255, 0.15)', boxShadow: '0 0 30px rgba(0, 210, 255, 0.08)' }}>
       {/* Logo */}
       <Link to="/" className="font-space-grotesk text-2xl font-bold text-white tracking-tight">
         LGT<span className="text-accent">.</span>
@@ -110,7 +110,7 @@ const Header = () => {
                   className="fixed inset-0 z-40"
                   onClick={() => setProfileMenuOpen(false)}
                 />
-                <div className="absolute right-0 mt-2 w-56 bg-[#111] border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-56 bg-[#0D2137] border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
                   {/* User Info */}
                   <div className="px-4 py-3 border-b border-white/10">
                     <p className="text-white font-medium">{user?.firstName} {user?.lastName}</p>
@@ -221,7 +221,7 @@ const Header = () => {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="absolute top-full left-0 w-full bg-[#111] border-b border-white/10 md:hidden">
+        <div className="absolute top-full left-0 w-full bg-[#0D2137] border-b border-white/10 md:hidden">
           <nav className="px-6 py-4 space-y-2">
             {/* Main Links */}
             {navLinks.map((link) => (

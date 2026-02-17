@@ -115,10 +115,10 @@ const MyDesigns = () => {
             {designs.map((design) => (
               <div
                 key={design.id}
-                className="group bg-[#111] rounded-2xl overflow-hidden border border-white/10 hover:border-accent/50 transition-all duration-300"
+                className="group bg-[#0D2137] rounded-2xl overflow-hidden border border-white/10 hover:border-accent/50 transition-all duration-300"
               >
                 {/* Preview Image */}
-                <div className="relative aspect-square bg-[#0a0a0a] overflow-hidden">
+                <div className="relative aspect-square bg-[#0A1931] overflow-hidden">
                   {design.frontPreviewUrl ? (
                     <img
                       src={design.frontPreviewUrl}

@@ -158,7 +158,7 @@ const AdminOrders = () => {
         </div>
 
         {/* Orders Table */}
-        <div className="bg-[#111] rounded-2xl border border-white/10 overflow-hidden">
+        <div className="bg-[#0D2137] rounded-2xl border border-white/10 overflow-hidden">
           {filteredOrders.length === 0 ? (
             <div className="p-12 text-center">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
@@ -230,12 +230,12 @@ const AdminOrders = () => {
                             onChange={(e) => handleStatusChange(order.id, e.target.value)}
                             className="text-sm bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-accent"
                           >
-                            <option value="PENDING" className="bg-[#111]">En attente</option>
-                            <option value="PAID" className="bg-[#111]">Payée</option>
-                            <option value="PROCESSING" className="bg-[#111]">En production</option>
-                            <option value="SHIPPED" className="bg-[#111]">Expédiée</option>
-                            <option value="DELIVERED" className="bg-[#111]">Livrée</option>
-                            <option value="CANCELLED" className="bg-[#111]">Annulée</option>
+                            <option value="PENDING" className="bg-[#0D2137]">En attente</option>
+                            <option value="PAID" className="bg-[#0D2137]">Payée</option>
+                            <option value="PROCESSING" className="bg-[#0D2137]">En production</option>
+                            <option value="SHIPPED" className="bg-[#0D2137]">Expédiée</option>
+                            <option value="DELIVERED" className="bg-[#0D2137]">Livrée</option>
+                            <option value="CANCELLED" className="bg-[#0D2137]">Annulée</option>
                           </select>
                         </div>
                       </td>
@@ -255,7 +255,7 @@ const AdminOrders = () => {
           onClick={() => setSelectedOrder(null)}
         >
           <div
-            className="bg-[#111] border border-white/10 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-[#0D2137] border border-white/10 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}

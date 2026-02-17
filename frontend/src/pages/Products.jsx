@@ -56,7 +56,7 @@ const Products = () => {
                 key={product.id}
                 className="product-card group"
               >
-                <Link to={`/product/${product.id}`} className="relative overflow-hidden rounded-2xl bg-[#111] block">
+                <Link to={`/product/${product.id}`} className="relative overflow-hidden rounded-2xl bg-[#0D2137] block">
                   <img
                     src={product.mockupFrontUrl || 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=600&fit=crop'}
                     alt={product.name}
@@ -102,7 +102,7 @@ const Products = () => {
 
         {!loading && products.length === 0 && (
           <div className="text-center py-20">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#111] flex items-center justify-center">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#0D2137] flex items-center justify-center">
               <svg className="w-10 h-10 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>

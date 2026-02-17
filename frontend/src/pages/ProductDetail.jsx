@@ -118,7 +118,7 @@ const ProductDetail = () => {
           {/* Images Section */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="aspect-[3/4] bg-[#111] rounded-2xl overflow-hidden border border-white/10">
+            <div className="aspect-[3/4] bg-[#0D2137] rounded-2xl overflow-hidden border border-white/10">
               <img
                 src={currentImage || 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=1200&q=90&fit=crop'}
                 alt={product.name}

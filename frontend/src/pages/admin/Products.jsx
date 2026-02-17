@@ -149,7 +149,7 @@ const AdminProducts = () => {
 
         {/* Products Grid */}
         {products.length === 0 ? (
-          <div className="bg-[#111] rounded-2xl border border-white/10 p-12 text-center">
+          <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-12 text-center">
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-white/5 flex items-center justify-center">
               <svg className="w-10 h-10 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -163,10 +163,10 @@ const AdminProducts = () => {
             {products.map((product) => (
               <div
                 key={product.id}
-                className="group bg-[#111] rounded-2xl border border-white/10 overflow-hidden hover:border-accent/50 transition-all duration-300"
+                className="group bg-[#0D2137] rounded-2xl border border-white/10 overflow-hidden hover:border-accent/50 transition-all duration-300"
               >
                 {/* Product Image */}
-                <div className="aspect-square bg-[#0a0a0a] flex items-center justify-center overflow-hidden">
+                <div className="aspect-square bg-[#0A1931] flex items-center justify-center overflow-hidden">
                   {product.mockupFrontUrl ? (
                     <img
                       src={product.mockupFrontUrl}
@@ -240,7 +240,7 @@ const AdminProducts = () => {
           onClick={() => setShowModal(false)}
         >
           <div
-            className="bg-[#111] border border-white/10 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-[#0D2137] border border-white/10 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}

@@ -78,7 +78,7 @@ const Profile = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {/* Designs */}
-          <div className="bg-[#111] rounded-2xl border border-white/10 p-6 hover:border-blue-500/30 transition-colors">
+          <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-6 hover:border-blue-500/30 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,7 +92,7 @@ const Profile = () => {
           </div>
 
           {/* Orders */}
-          <div className="bg-[#111] rounded-2xl border border-white/10 p-6 hover:border-purple-500/30 transition-colors">
+          <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-6 hover:border-purple-500/30 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
                 <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,7 +106,7 @@ const Profile = () => {
           </div>
 
           {/* Total Spent */}
-          <div className="bg-[#111] rounded-2xl border border-white/10 p-6 hover:border-accent/30 transition-colors">
+          <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-6 hover:border-accent/30 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
                 <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +121,7 @@ const Profile = () => {
         </div>
 
         {/* Account Info */}
-        <div className="bg-[#111] rounded-2xl border border-white/10 overflow-hidden mb-12">
+        <div className="bg-[#0D2137] rounded-2xl border border-white/10 overflow-hidden mb-12">
           <div className="p-6 border-b border-white/10">
             <h2 className="font-space-grotesk text-2xl font-bold text-white">Informations du compte</h2>
           </div>
@@ -178,7 +178,7 @@ const Profile = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link
             to="/my-designs"
-            className="group bg-[#111] rounded-2xl border border-white/10 p-8 hover:border-accent/50 transition-all duration-300"
+            className="group bg-[#0D2137] rounded-2xl border border-white/10 p-8 hover:border-accent/50 transition-all duration-300"
           >
             <div className="flex items-center gap-6">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -200,7 +200,7 @@ const Profile = () => {
 
           <Link
             to="/my-orders"
-            className="group bg-[#111] rounded-2xl border border-white/10 p-8 hover:border-accent/50 transition-all duration-300"
+            className="group bg-[#0D2137] rounded-2xl border border-white/10 p-8 hover:border-accent/50 transition-all duration-300"
           >
             <div className="flex items-center gap-6">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center group-hover:scale-110 transition-transform">

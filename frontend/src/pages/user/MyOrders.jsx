@@ -101,7 +101,7 @@ const MyOrders = () => {
             {orders.map((order) => (
               <div
                 key={order.id}
-                className="bg-[#111] rounded-2xl border border-white/10 overflow-hidden hover:border-accent/30 transition-all duration-300"
+                className="bg-[#0D2137] rounded-2xl border border-white/10 overflow-hidden hover:border-accent/30 transition-all duration-300"
               >
                 <div className="p-6">
                   {/* Order Header */}
@@ -182,7 +182,7 @@ const MyOrders = () => {
           onClick={() => setSelectedOrder(null)}
         >
           <div
-            className="bg-[#111] border border-white/10 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-[#0D2137] border border-white/10 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}

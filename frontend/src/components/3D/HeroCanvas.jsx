@@ -2,7 +2,7 @@ import { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const Particles = ({ count = 3000 }) => {
+const Particles = ({ count = 3500 }) => {
   const mesh = useRef();
   const mousePos = useRef({ x: 0, y: 0 });
 
@@ -11,25 +11,38 @@ const Particles = ({ count = 3000 }) => {
     const colors = new Float32Array(count * 3);
 
     for (let i = 0; i < count; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 20;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+      positions[i * 3] = (Math.random() - 0.5) * 25;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 25;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 25;
 
-      // Gradient de couleurs (vert lime -> cyan)
+      // Étoiles style espace : blanches, bleutées, cyan
       const t = Math.random();
-      colors[i * 3] = 0.78 * (1 - t) + 0 * t;     // R
-      colors[i * 3 + 1] = 1 * (1 - t) + 1 * t;    // G
-      colors[i * 3 + 2] = 0 * (1 - t) + 0.78 * t; // B
+      if (t < 0.5) {
+        // Étoiles blanches/bleutées
+        colors[i * 3] = 0.85 + Math.random() * 0.15;
+        colors[i * 3 + 1] = 0.9 + Math.random() * 0.1;
+        colors[i * 3 + 2] = 1;
+      } else if (t < 0.8) {
+        // Étoiles bleu cyan (#00D2FF)
+        colors[i * 3] = 0;
+        colors[i * 3 + 1] = 0.82;
+        colors[i * 3 + 2] = 1;
+      } else {
+        // Étoiles bleu profond (#0077FF)
+        colors[i * 3] = 0;
+        colors[i * 3 + 1] = 0.47;
+        colors[i * 3 + 2] = 1;
+      }
     }
 
     return [positions, colors];
   }, [count]);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (mesh.current) {
-      mesh.current.rotation.y += 0.0005;
-      mesh.current.rotation.x = mousePos.current.y * 0.1;
-      mesh.current.rotation.y += mousePos.current.x * 0.0005;
+      mesh.current.rotation.y += 0.0003;
+      mesh.current.rotation.x = mousePos.current.y * 0.05;
+      mesh.current.rotation.y += mousePos.current.x * 0.0003;
     }
   });
 
@@ -58,10 +71,10 @@ const Particles = ({ count = 3000 }) => {
         />
       </bufferGeometry>
       <pointsMaterial
-        size={0.02}
+        size={0.025}
         vertexColors
         transparent
-        opacity={0.8}
+        opacity={0.85}
         blending={THREE.AdditiveBlending}
       />
     </points>
@@ -82,7 +95,7 @@ const Torus = ({ position, color, size = 3, tubeSize = 0.5, rotationSpeed = { x:
   return (
     <mesh ref={mesh} position={position}>
       <torusGeometry args={[size, tubeSize, 16, 100]} />
-      <meshBasicMaterial color={color} wireframe transparent opacity={0.3} />
+      <meshBasicMaterial color={color} wireframe transparent opacity={0.15} />
     </mesh>
   );
 };
@@ -91,20 +104,27 @@ const HeroCanvas = () => {
   return (
     <div className="absolute inset-0 z-0">
       <Canvas camera={{ position: [0, 0, 8], fov: 75 }}>
-        <Particles count={3000} />
+        <Particles count={3500} />
         <Torus
           position={[5, 0, -5]}
-          color="#c8ff00"
+          color="#00D2FF"
           size={3}
-          tubeSize={0.5}
-          rotationSpeed={{ x: 0.005, y: 0.002 }}
+          tubeSize={0.4}
+          rotationSpeed={{ x: 0.003, y: 0.001 }}
         />
         <Torus
           position={[-4, 2, -3]}
-          color="#00ffc8"
+          color="#0077FF"
           size={2}
-          tubeSize={0.3}
-          rotationSpeed={{ x: 0.003, y: 0.005 }}
+          tubeSize={0.25}
+          rotationSpeed={{ x: 0.002, y: 0.004 }}
+        />
+        <Torus
+          position={[2, -3, -6]}
+          color="#00FFD2"
+          size={1.5}
+          tubeSize={0.2}
+          rotationSpeed={{ x: 0.004, y: 0.003 }}
         />
       </Canvas>
     </div>
