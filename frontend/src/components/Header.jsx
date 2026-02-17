@@ -1,18 +1,39 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { categoriesAPI } from '../services/api';
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [collectionMenuOpen, setCollectionMenuOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const collectionRef = useRef(null);
 
   const isActive = (path) => location.pathname === path;
 
+  useEffect(() => {
+    categoriesAPI.getAll().then(data => {
+      setCategories(data.categories || []);
+    }).catch(() => {});
+  }, []);
+
+  // Close collection dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (collectionRef.current && !collectionRef.current.contains(e.target)) {
+        setCollectionMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const navLinks = [
     { path: '/', label: 'Accueil' },
-    { path: '/products', label: 'Collection' },
   ];
 
   const authLinks = [
@@ -43,6 +64,52 @@ const Header = () => {
             {link.label}
           </Link>
         ))}
+
+        {/* Collection Dropdown */}
+        <div className="relative" ref={collectionRef}>
+          <button
+            onClick={() => setCollectionMenuOpen(!collectionMenuOpen)}
+            className={`text-sm font-medium transition-colors flex items-center gap-1 ${
+              location.pathname === '/products'
+                ? 'text-accent'
+                : 'text-text-muted hover:text-white'
+            }`}
+          >
+            Collection
+            <svg
+              className={`w-3.5 h-3.5 transition-transform ${collectionMenuOpen ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {collectionMenuOpen && (
+            <>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-48 bg-[#0D2137] border border-white/10 rounded-xl shadow-xl overflow-hidden z-50">
+                <Link
+                  to="/products"
+                  onClick={() => setCollectionMenuOpen(false)}
+                  className="block px-4 py-3 text-sm text-text-muted hover:text-white hover:bg-white/5 transition-colors border-b border-white/10 font-medium"
+                >
+                  Tout voir
+                </Link>
+                {categories.map((cat) => (
+                  <Link
+                    key={cat.id}
+                    to={`/products?category=${cat.slug}`}
+                    onClick={() => setCollectionMenuOpen(false)}
+                    className="block px-4 py-3 text-sm text-text-muted hover:text-white hover:bg-white/5 transition-colors"
+                  >
+                    {cat.name}
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Auth Links (when logged in) */}
         {isAuthenticated() && (
@@ -236,6 +303,29 @@ const Header = () => {
                 }`}
               >
                 {link.label}
+              </Link>
+            ))}
+
+            {/* Collection with sub-links */}
+            <Link
+              to="/products"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-4 py-3 rounded-xl transition-colors ${
+                isActive('/products')
+                  ? 'bg-accent/10 text-accent'
+                  : 'text-text-muted hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              Collection
+            </Link>
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                to={`/products?category=${cat.slug}`}
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-4 py-3 pl-8 rounded-xl text-text-muted hover:bg-white/5 hover:text-white transition-colors text-sm"
+              >
+                {cat.name}
               </Link>
             ))}
 

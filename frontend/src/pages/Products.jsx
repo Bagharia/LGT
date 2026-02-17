@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { categoriesAPI } from '../services/api';
 import Header from '../components/Header';
 
 const Products = () => {
+  const [searchParams] = useSearchParams();
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -17,7 +18,14 @@ const Products = () => {
       const data = await categoriesAPI.getAll();
       const cats = data.categories || [];
       setCategories(cats);
-      if (cats.length > 0) {
+
+      // Check for ?category=slug in URL
+      const categorySlug = searchParams.get('category');
+      const matchedCat = categorySlug && cats.find(c => c.slug === categorySlug);
+
+      if (matchedCat) {
+        setActiveCategory(matchedCat.id);
+      } else if (cats.length > 0) {
         setActiveCategory(cats[0].id);
       }
       setLoading(false);
