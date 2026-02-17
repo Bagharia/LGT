@@ -101,7 +101,8 @@ const Checkout = () => {
       }
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors de la création du paiement');
+      const details = error.response?.data?.details || error.message || '';
+      alert('Erreur lors de la création du paiement: ' + details);
       setSubmitting(false);
       setCreatingOrder(false);
     }

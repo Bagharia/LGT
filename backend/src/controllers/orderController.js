@@ -6,25 +6,20 @@ const prisma = new PrismaClient();
 // @access  Private
 exports.createOrder = async (req, res) => {
   try {
-    const { designs, totalPrice } = req.body;
+    const { designs, totalPrice, type, productId, quantities } = req.body;
     const userId = req.user.userId;
 
     console.log('📦 Création commande pour userId:', userId);
+    console.log('📦 Type:', type || 'custom');
     console.log('📦 Designs reçus:', JSON.stringify(designs, null, 2));
     console.log('📦 Prix total:', totalPrice);
 
-    // Vérifier que designs est un tableau non vide
-    if (!designs || !Array.isArray(designs) || designs.length === 0) {
-      return res.status(400).json({ error: 'Au moins un design est requis' });
-    }
-
-    // Créer la commande avec les designs
+    // Créer la commande
     const order = await prisma.order.create({
       data: {
         userId: userId,
         totalPrice: totalPrice,
         status: 'PENDING',
-        // Pour l'instant, on met des valeurs par défaut pour les champs requis
         shippingAddress: 'A définir',
         shippingCity: 'A définir',
         shippingZip: '00000',
@@ -32,19 +27,48 @@ exports.createOrder = async (req, res) => {
       }
     });
 
-    // Créer les relations OrderDesign pour chaque design
-    for (const designData of designs) {
+    if (type === 'ready-made' && productId) {
+      // Commande de produit fini (sans design personnalisé)
+      // Créer un design "vide" lié au produit pour le OrderDesign
+      const design = await prisma.design.create({
+        data: {
+          userId: userId,
+          productId: parseInt(productId),
+          frontDesignJson: '{"objects":[]}',
+          name: 'Produit fini',
+          quantities: quantities,
+          totalPrice: totalPrice,
+          finalPrice: totalPrice
+        }
+      });
+
       await prisma.orderDesign.create({
         data: {
           orderId: order.id,
-          designId: designData.designId,
-          quantities: designData.quantities,
-          finalPrice: designData.finalPrice
+          designId: design.id,
+          quantities: quantities || {},
+          finalPrice: totalPrice
         }
       });
+    } else if (designs && Array.isArray(designs) && designs.length > 0) {
+      // Commande avec designs personnalisés
+      for (const designData of designs) {
+        await prisma.orderDesign.create({
+          data: {
+            orderId: order.id,
+            designId: designData.designId,
+            quantities: designData.quantities,
+            finalPrice: designData.finalPrice
+          }
+        });
+      }
+    } else {
+      // Ni ready-made ni designs fournis
+      await prisma.order.delete({ where: { id: order.id } });
+      return res.status(400).json({ error: 'Au moins un design ou produit est requis' });
     }
 
-    // Récupérer la commande complète avec les designs
+    // Récupérer la commande complète
     const completeOrder = await prisma.order.findUnique({
       where: { id: order.id },
       include: {

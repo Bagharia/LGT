@@ -8,6 +8,11 @@ exports.createCheckoutSession = async (req, res) => {
     const { orderId, shippingInfo } = req.body;
     const userId = req.user.userId;
 
+    console.log('=== CREATE CHECKOUT SESSION ===');
+    console.log('orderId:', orderId, 'type:', typeof orderId);
+    console.log('userId:', userId);
+    console.log('shippingInfo:', JSON.stringify(shippingInfo));
+
     // Recuperer la commande avec les designs
     const order = await prisma.order.findFirst({
       where: {
@@ -22,6 +27,9 @@ exports.createCheckoutSession = async (req, res) => {
         }
       }
     });
+
+    console.log('Order found:', order ? 'YES' : 'NO');
+    console.log('OrderDesigns count:', order?.orderDesigns?.length);
 
     if (!order) {
       return res.status(404).json({ error: 'Commande non trouvee' });
@@ -54,10 +62,11 @@ exports.createCheckoutSession = async (req, res) => {
       };
     });
 
+    console.log('Line items pour Stripe:', JSON.stringify(lineItems, null, 2));
+
     // Creer la session Stripe Checkout
-    // Methodes de paiement: carte, PayPal, Link (paiement express), Apple Pay/Google Pay (via card)
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'paypal', 'link'],
+      payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
       success_url: process.env.FRONTEND_URL + '/payment-success?session_id={CHECKOUT_SESSION_ID}&order_id=' + order.id,
@@ -71,8 +80,9 @@ exports.createCheckoutSession = async (req, res) => {
 
     res.json({ sessionId: session.id, url: session.url });
   } catch (error) {
-    console.error('Erreur creation session Stripe:', error);
-    res.status(500).json({ error: 'Erreur lors de la creation du paiement' });
+    console.error('Erreur creation session Stripe:', error.message);
+    console.error('Stripe error details:', error.raw || error);
+    res.status(500).json({ error: 'Erreur lors de la creation du paiement', details: error.message });
   }
 };
 
