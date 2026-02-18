@@ -1,30 +1,25 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { designsAPI, productsAPI } from '../services/api';
+import { designsAPI, categoriesAPI } from '../services/api';
 import Header from '../components/Header';
 
 const MyDesigns = () => {
   const [designs, setDesigns] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [defaultProductId, setDefaultProductId] = useState(1);
+  const [categories, setCategories] = useState([]);
+  const [activeTab, setActiveTab] = useState('tshirt'); // 'tshirt' or 'poster'
 
   useEffect(() => {
     loadDesigns();
-    loadDefaultProduct();
+    loadCategories();
   }, []);
 
-  const loadDefaultProduct = async () => {
+  const loadCategories = async () => {
     try {
-      const data = await productsAPI.getAll();
-      if (data.products && data.products.length > 0) {
-        // Chercher un t-shirt noir en premier, sinon prendre le premier produit
-        const blackShirt = data.products.find(p =>
-          p.name.toLowerCase().includes('noir') || p.name.toLowerCase().includes('black')
-        );
-        setDefaultProductId(blackShirt ? blackShirt.id : data.products[0].id);
-      }
+      const data = await categoriesAPI.getAll();
+      setCategories(data.categories || []);
     } catch (error) {
-      console.error('Erreur lors du chargement du produit par défaut:', error);
+      console.error('Erreur lors du chargement des catégories:', error);
     }
   };
 
@@ -53,34 +48,110 @@ const MyDesigns = () => {
     }
   };
 
+  // Séparer les designs par type
+  const isPosterDesign = (design) => design.product?.category?.hasTwoSides === false;
+  const tshirtDesigns = designs.filter(d => !isPosterDesign(d));
+  const posterDesigns = designs.filter(d => isPosterDesign(d));
+
+  // Trouver un produit par défaut pour chaque type
+  const tshirtCategory = categories.find(c => c.hasTwoSides === true);
+  const posterCategory = categories.find(c => c.hasTwoSides === false);
+  const defaultTshirtProduct = tshirtCategory?.products?.[0];
+  const defaultPosterProduct = posterCategory?.products?.[0];
+
+  const currentDesigns = activeTab === 'tshirt' ? tshirtDesigns : posterDesigns;
+
   return (
     <div className="min-h-screen bg-primary">
-      {/* Header */}
       <Header />
 
       {/* Hero Section */}
       <section className="pt-32 pb-12 px-8 md:px-16">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-          <div>
-            <div className="hero-tag mb-6">
-              Mon Espace Créatif
-            </div>
-            <h1 className="font-space-grotesk text-5xl md:text-6xl font-bold text-white mb-4 tracking-tight">
-              Mes <span className="accent">Designs</span>
-            </h1>
-            <p className="text-xl text-text-muted max-w-xl">
-              Retrouvez tous vos designs personnalisés et continuez à créer.
-            </p>
+        <div>
+          <div className="hero-tag mb-6">
+            Mon Espace Créatif
           </div>
-          <Link
-            to={`/editor/${defaultProductId}`}
-            className="btn-primary self-start md:self-auto"
+          <h1 className="font-space-grotesk text-5xl md:text-6xl font-bold text-white mb-4 tracking-tight">
+            Mes <span className="accent">Designs</span>
+          </h1>
+          <p className="text-xl text-text-muted max-w-xl">
+            Retrouvez tous vos designs personnalisés et continuez à créer.
+          </p>
+        </div>
+      </section>
+
+      {/* Type Selection Cards */}
+      <section className="px-8 md:px-16 pb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
+          {/* T-shirt Card */}
+          <button
+            onClick={() => setActiveTab('tshirt')}
+            className={`relative group rounded-2xl p-6 border-2 transition-all duration-300 text-left ${
+              activeTab === 'tshirt'
+                ? 'border-accent bg-accent/10 shadow-lg shadow-accent/20'
+                : 'border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10'
+            }`}
           >
-            Nouveau Design
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-          </Link>
+            <div className="flex items-center gap-4">
+              {/* T-shirt Icon */}
+              <div className={`w-16 h-16 rounded-xl flex items-center justify-center transition-colors ${
+                activeTab === 'tshirt' ? 'bg-accent/20' : 'bg-white/10'
+              }`}>
+                <svg className={`w-8 h-8 ${activeTab === 'tshirt' ? 'text-accent' : 'text-white/60'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 2L1 7l3 2 1-3h2.5m0 0C8 6 9 8 12 8s4-2 4.5-2m0 0H19l1 3 3-2-5.5-5M16.5 6v0M7.5 6L7 22h10l-.5-16" />
+                </svg>
+              </div>
+              <div>
+                <h3 className={`font-space-grotesk text-xl font-bold mb-1 ${
+                  activeTab === 'tshirt' ? 'text-white' : 'text-white/80'
+                }`}>
+                  T-Shirts
+                </h3>
+                <p className="text-text-muted text-sm">
+                  {tshirtDesigns.length} design{tshirtDesigns.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+            {activeTab === 'tshirt' && (
+              <div className="absolute top-3 right-3 w-3 h-3 rounded-full bg-accent"></div>
+            )}
+          </button>
+
+          {/* Poster Card */}
+          <button
+            onClick={() => setActiveTab('poster')}
+            className={`relative group rounded-2xl p-6 border-2 transition-all duration-300 text-left ${
+              activeTab === 'poster'
+                ? 'border-accent bg-accent/10 shadow-lg shadow-accent/20'
+                : 'border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10'
+            }`}
+          >
+            <div className="flex items-center gap-4">
+              {/* Poster/Frame Icon */}
+              <div className={`w-16 h-16 rounded-xl flex items-center justify-center transition-colors ${
+                activeTab === 'poster' ? 'bg-accent/20' : 'bg-white/10'
+              }`}>
+                <svg className={`w-8 h-8 ${activeTab === 'poster' ? 'text-accent' : 'text-white/60'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <rect x="5" y="5" width="14" height="14" rx="1" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l4-4 3 3 2-2 5 5" />
+                </svg>
+              </div>
+              <div>
+                <h3 className={`font-space-grotesk text-xl font-bold mb-1 ${
+                  activeTab === 'poster' ? 'text-white' : 'text-white/80'
+                }`}>
+                  Posters
+                </h3>
+                <p className="text-text-muted text-sm">
+                  {posterDesigns.length} design{posterDesigns.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+            {activeTab === 'poster' && (
+              <div className="absolute top-3 right-3 w-3 h-3 rounded-full bg-accent"></div>
+            )}
+          </button>
         </div>
       </section>
 
@@ -90,94 +161,178 @@ const MyDesigns = () => {
           <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-2 border-accent border-t-transparent"></div>
           </div>
-        ) : designs.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-24 h-24 mx-auto mb-8 rounded-3xl bg-gradient-to-br from-accent to-cyan-400 flex items-center justify-center">
-              <svg className="w-12 h-12 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-              </svg>
-            </div>
-            <h3 className="font-space-grotesk text-3xl font-bold text-white mb-4">
-              Aucun design pour le moment
-            </h3>
-            <p className="text-text-muted text-lg mb-8 max-w-md mx-auto">
-              Commencez à créer vos T-shirts personnalisés dès maintenant et laissez libre cours à votre créativité.
-            </p>
-            <Link to={`/editor/${defaultProductId}`} className="btn-primary">
-              Créer mon premier design
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </Link>
-          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {designs.map((design) => (
-              <div
-                key={design.id}
-                className="group bg-[#0D2137] rounded-2xl overflow-hidden border border-white/10 hover:border-accent/50 transition-all duration-300"
+            {/* Create New Design Card */}
+            {activeTab === 'tshirt' && (
+              <Link
+                to={defaultTshirtProduct ? `/editor/${defaultTshirtProduct.id}` : '/products?category=t-shirts'}
+                className="group bg-[#0D2137] rounded-2xl overflow-hidden border-2 border-dashed border-white/20 hover:border-accent/50 transition-all duration-300 flex flex-col items-center justify-center min-h-[320px]"
               >
-                {/* Preview Image */}
-                <div className="relative aspect-square bg-[#0A1931] overflow-hidden">
-                  {design.frontPreviewUrl ? (
-                    <img
-                      src={design.frontPreviewUrl}
-                      alt={design.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <svg className="w-20 h-20 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                  )}
-
-                  {/* Overlay Actions */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
-                    <Link
-                      to={`/editor/${design.productId}?designId=${design.id}`}
-                      className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-primary hover:scale-110 transition-transform"
-                      title="Modifier"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(design.id)}
-                      className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-white hover:scale-110 transition-transform"
-                      title="Supprimer"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
+                <div className="w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent/20 flex items-center justify-center mb-4 transition-colors">
+                  <svg className="w-10 h-10 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
                 </div>
+                <span className="font-space-grotesk text-lg font-semibold text-white/80 group-hover:text-white transition-colors">
+                  Nouveau T-Shirt
+                </span>
+                <span className="text-text-muted text-sm mt-1">
+                  Créer un design personnalisé
+                </span>
+              </Link>
+            )}
+            {activeTab === 'poster' && (
+              <Link
+                to={defaultPosterProduct ? `/poster-editor/${defaultPosterProduct.id}` : '/products?category=posters'}
+                className="group bg-[#0D2137] rounded-2xl overflow-hidden border-2 border-dashed border-white/20 hover:border-accent/50 transition-all duration-300 flex flex-col items-center justify-center min-h-[320px]"
+              >
+                <div className="w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent/20 flex items-center justify-center mb-4 transition-colors">
+                  <svg className="w-10 h-10 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <span className="font-space-grotesk text-lg font-semibold text-white/80 group-hover:text-white transition-colors">
+                  Nouveau Poster
+                </span>
+                <span className="text-text-muted text-sm mt-1">
+                  Créer un poster avec cadre
+                </span>
+              </Link>
+            )}
 
-                {/* Info */}
-                <div className="p-5">
-                  <h3 className="font-space-grotesk text-lg font-semibold text-white mb-2 truncate">
-                    {design.name}
-                  </h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-text-muted text-sm">
-                      {new Date(design.createdAt).toLocaleDateString('fr-FR', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                    </span>
-                    {design.finalPrice && (
-                      <span className="text-accent font-semibold">
-                        {design.finalPrice.toFixed(2)} EUR
-                      </span>
+            {/* Existing Designs */}
+            {currentDesigns.map((design) => {
+              const isPoster = isPosterDesign(design);
+              const editUrl = isPoster
+                ? `/poster-editor/${design.productId}?designId=${design.id}`
+                : `/editor/${design.productId}?designId=${design.id}`;
+
+              return (
+                <div
+                  key={design.id}
+                  className="group bg-[#0D2137] rounded-2xl overflow-hidden border border-white/10 hover:border-accent/50 transition-all duration-300"
+                >
+                  {/* Preview Image */}
+                  <div className="relative aspect-square bg-[#0A1931] overflow-hidden">
+                    {design.frontPreviewUrl ? (
+                      <img
+                        src={design.frontPreviewUrl}
+                        alt={design.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        {isPoster ? (
+                          <svg className="w-20 h-20 text-white/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <rect x="5" y="5" width="14" height="14" rx="1" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l4-4 3 3 2-2 5 5" />
+                          </svg>
+                        ) : (
+                          <svg className="w-20 h-20 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        )}
+                      </div>
                     )}
+
+                    {/* Type Badge */}
+                    <div className="absolute top-3 left-3">
+                      <span className="px-2 py-1 rounded-lg text-xs font-medium bg-black/50 backdrop-blur-sm text-white/80">
+                        {isPoster ? 'Poster' : 'T-Shirt'}
+                      </span>
+                    </div>
+
+                    {/* Overlay Actions */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
+                      <Link
+                        to={editUrl}
+                        className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-primary hover:scale-110 transition-transform"
+                        title="Modifier"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(design.id)}
+                        className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-white hover:scale-110 transition-transform"
+                        title="Supprimer"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="p-5">
+                    <h3 className="font-space-grotesk text-lg font-semibold text-white mb-2 truncate">
+                      {design.name}
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <span className="text-text-muted text-sm">
+                        {new Date(design.createdAt).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </span>
+                      {design.finalPrice && (
+                        <span className="text-accent font-semibold">
+                          {design.finalPrice.toFixed(2)} €
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
+          </div>
+        )}
+
+        {/* Empty state when no designs for current tab */}
+        {!loading && currentDesigns.length === 0 && (
+          <div className="text-center py-16">
+            <div className="w-24 h-24 mx-auto mb-8 rounded-3xl bg-gradient-to-br from-accent to-cyan-400 flex items-center justify-center">
+              {activeTab === 'tshirt' ? (
+                <svg className="w-12 h-12 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 2L1 7l3 2 1-3h2.5m0 0C8 6 9 8 12 8s4-2 4.5-2m0 0H19l1 3 3-2-5.5-5M16.5 6v0M7.5 6L7 22h10l-.5-16" />
+                </svg>
+              ) : (
+                <svg className="w-12 h-12 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <rect x="5" y="5" width="14" height="14" rx="1" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l4-4 3 3 2-2 5 5" />
+                </svg>
+              )}
+            </div>
+            <h3 className="font-space-grotesk text-3xl font-bold text-white mb-4">
+              Aucun design {activeTab === 'tshirt' ? 'T-Shirt' : 'Poster'}
+            </h3>
+            <p className="text-text-muted text-lg mb-8 max-w-md mx-auto">
+              {activeTab === 'tshirt'
+                ? 'Commencez à créer vos T-shirts personnalisés dès maintenant.'
+                : 'Créez votre premier poster avec cadre personnalisé.'}
+            </p>
+            {activeTab === 'tshirt' && (
+              <Link to={defaultTshirtProduct ? `/editor/${defaultTshirtProduct.id}` : '/products?category=t-shirts'} className="btn-primary">
+                Créer un T-Shirt
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </Link>
+            )}
+            {activeTab === 'poster' && (
+              <Link to={defaultPosterProduct ? `/poster-editor/${defaultPosterProduct.id}` : '/products?category=posters'} className="btn-primary">
+                Créer un Poster
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </Link>
+            )}
           </div>
         )}
       </section>

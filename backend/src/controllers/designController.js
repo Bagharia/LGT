@@ -85,7 +85,11 @@ exports.getMyDesigns = async (req, res) => {
     const designs = await prisma.design.findMany({
       where: { userId: req.user.userId },
       include: {
-        product: true
+        product: {
+          include: {
+            category: true
+          }
+        }
       },
       orderBy: { createdAt: 'desc' }
     });
