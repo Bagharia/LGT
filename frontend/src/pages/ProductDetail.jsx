@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { productsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/Toast';
 import Header from '../components/Header';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const POSTER_FORMATS = ['A4', 'A3'];
 
 const ProductDetail = () => {
+  const toast = useToast();
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -75,7 +77,7 @@ const ProductDetail = () => {
       navigate('/checkout');
     } catch (err) {
       console.error('Erreur:', err);
-      alert('Erreur lors de la création de la commande');
+      toast.error('Erreur lors de la création de la commande');
     } finally {
       setIsOrdering(false);
     }

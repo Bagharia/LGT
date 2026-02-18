@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ordersAPI } from '../../services/api';
+import { useToast } from '../../components/Toast';
 import Header from '../../components/Header';
 
 // Constantes de conversion (identiques à l'éditeur)
@@ -36,6 +37,7 @@ const parseDesignElements = (designJson) => {
 };
 
 const AdminOrders = () => {
+  const toast = useToast();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -64,7 +66,7 @@ const AdminOrders = () => {
       ));
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors de la mise à jour du statut');
+      toast.error('Erreur lors de la mise à jour du statut');
     }
   };
 
@@ -346,6 +348,7 @@ const AdminOrders = () => {
                   </h3>
                   <div className="space-y-6">
                     {selectedOrder.designs.map((design, index) => {
+                      const isPoster = design.product?.category?.hasTwoSides === false;
                       const frontElements = parseDesignElements(design.frontDesignJson);
                       const backElements = parseDesignElements(design.backDesignJson);
 
@@ -354,212 +357,367 @@ const AdminOrders = () => {
                           key={index}
                           className="bg-white/5 border border-white/10 rounded-xl p-5"
                         >
-                          {/* Header du design */}
-                          <div className="flex gap-4 mb-4">
-                            <div className="flex gap-2">
-                              {design.frontPreviewUrl && (
-                                <img
-                                  src={design.frontPreviewUrl}
-                                  alt={`${design.name} - avant`}
-                                  className="w-24 h-28 object-cover rounded-lg border border-white/10"
-                                />
-                              )}
-                              {design.backPreviewUrl && (
-                                <img
-                                  src={design.backPreviewUrl}
-                                  alt={`${design.name} - arrière`}
-                                  className="w-24 h-28 object-cover rounded-lg border border-white/10"
-                                />
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-white mb-1">{design.name}</h4>
-                              {design.tshirtColor && (
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="text-text-muted text-sm">Couleur:</span>
-                                  <span
-                                    className="w-5 h-5 rounded-full border border-white/20 inline-block"
-                                    style={{ backgroundColor: design.tshirtColor }}
-                                  />
-                                  <span className="text-white text-sm">{design.tshirtColor}</span>
-                                </div>
-                              )}
-                              <div className="flex flex-wrap gap-2 mb-2">
-                                {design.quantities && Object.entries(design.quantities).map(([size, qty]) => (
-                                  qty > 0 && (
-                                    <span
-                                      key={size}
-                                      className="text-xs bg-white/10 text-white px-2 py-1 rounded"
-                                    >
-                                      {size}: {qty}
-                                    </span>
-                                  )
-                                ))}
-                              </div>
-                              <p className="text-accent font-semibold">{design.finalPrice?.toFixed(2)} €</p>
-                            </div>
+                          {/* Type badge */}
+                          <div className="flex items-center gap-2 mb-4">
+                            <span className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                              isPoster
+                                ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                                : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                            }`}>
+                              {isPoster ? 'POSTER' : 'T-SHIRT'}
+                            </span>
+                            <h4 className="font-semibold text-white">{design.name}</h4>
+                            <span className="ml-auto text-accent font-semibold text-lg">{design.finalPrice?.toFixed(2)} €</span>
                           </div>
 
-                          {/* Détails de placement - Face avant */}
-                          {frontElements.length > 0 && (
-                            <div className="mt-4 border-t border-white/10 pt-4">
-                              <h5 className="text-sm font-semibold text-accent mb-3 flex items-center gap-2">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
-                                </svg>
-                                Face Avant — Placement ({frontElements.length} élément{frontElements.length > 1 ? 's' : ''})
-                              </h5>
-                              <div className="space-y-2">
-                                {frontElements.map((el, i) => (
-                                  <div key={i} className="bg-black/30 rounded-lg p-3 border border-white/5">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <span className={`text-xs px-2 py-0.5 rounded font-medium ${
-                                        el.type === 'text' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'
-                                      }`}>
-                                        {el.type === 'text' ? 'TEXTE' : 'IMAGE'}
-                                      </span>
-                                      {el.type === 'text' && el.text && (
-                                        <span className="text-white text-sm font-medium truncate">"{el.text}"</span>
-                                      )}
-                                    </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                                      <div className="bg-white/5 rounded px-2 py-1.5">
-                                        <span className="text-text-muted block">Position X</span>
-                                        <span className="text-white font-mono">{el.posX.toFixed(1)} cm</span>
-                                      </div>
-                                      <div className="bg-white/5 rounded px-2 py-1.5">
-                                        <span className="text-text-muted block">Position Y</span>
-                                        <span className="text-white font-mono">{el.posY.toFixed(1)} cm</span>
-                                      </div>
-                                      <div className="bg-white/5 rounded px-2 py-1.5">
-                                        <span className="text-text-muted block">Largeur</span>
-                                        <span className="text-white font-mono">{el.widthCm.toFixed(1)} cm</span>
-                                      </div>
-                                      <div className="bg-white/5 rounded px-2 py-1.5">
-                                        <span className="text-text-muted block">Hauteur</span>
-                                        <span className="text-white font-mono">{el.heightCm.toFixed(1)} cm</span>
-                                      </div>
-                                    </div>
-                                    {el.type === 'text' && (
-                                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs mt-2">
-                                        {el.fontFamily && (
-                                          <div className="bg-white/5 rounded px-2 py-1.5">
-                                            <span className="text-text-muted block">Police</span>
-                                            <span className="text-white">{el.fontFamily}</span>
-                                          </div>
-                                        )}
-                                        {el.fontSize && (
-                                          <div className="bg-white/5 rounded px-2 py-1.5">
-                                            <span className="text-text-muted block">Taille police</span>
-                                            <span className="text-white font-mono">{el.fontSize}px</span>
-                                          </div>
-                                        )}
-                                        {el.fill && (
-                                          <div className="bg-white/5 rounded px-2 py-1.5 flex items-center gap-2">
-                                            <span className="text-text-muted">Couleur</span>
-                                            <span
-                                              className="w-4 h-4 rounded border border-white/20 inline-block"
-                                              style={{ backgroundColor: el.fill }}
-                                            />
-                                            <span className="text-white text-xs">{el.fill}</span>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-                                    {el.angle !== 0 && (
-                                      <div className="mt-2 text-xs bg-white/5 rounded px-2 py-1.5 inline-block">
-                                        <span className="text-text-muted">Rotation: </span>
-                                        <span className="text-white font-mono">{el.angle.toFixed(1)}°</span>
-                                      </div>
-                                    )}
+                          {isPoster ? (
+                            /* =================== POSTER DETAILS =================== */
+                            <div>
+                              {/* Image du poster en grand */}
+                              <div className="mb-4 bg-black/30 rounded-xl p-4 border border-white/5">
+                                {design.posterImageUrl ? (
+                                  <div className="flex flex-col items-center">
+                                    <img
+                                      src={design.posterImageUrl}
+                                      alt={design.name}
+                                      className="max-h-[400px] object-contain rounded-lg mb-4"
+                                    />
+                                    <button
+                                      onClick={() => {
+                                        const link = document.createElement('a');
+                                        link.href = design.posterImageUrl;
+                                        link.download = `poster-${design.id}-commande-${selectedOrder.id}.png`;
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                      }}
+                                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-primary font-semibold hover:bg-accent/90 transition-colors"
+                                    >
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                      </svg>
+                                      Télécharger l'image HD
+                                    </button>
                                   </div>
-                                ))}
+                                ) : design.frontPreviewUrl ? (
+                                  <div className="flex flex-col items-center">
+                                    <img
+                                      src={design.frontPreviewUrl}
+                                      alt={design.name}
+                                      className="max-h-[400px] object-contain rounded-lg mb-4"
+                                    />
+                                    <button
+                                      onClick={() => {
+                                        const link = document.createElement('a');
+                                        link.href = design.frontPreviewUrl;
+                                        link.download = `poster-preview-${design.id}.png`;
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                      }}
+                                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-primary font-semibold hover:bg-accent/90 transition-colors"
+                                    >
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                      </svg>
+                                      Télécharger la preview
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <p className="text-text-muted text-center py-8">Aucune image disponible</p>
+                                )}
+                              </div>
+
+                              {/* Specs poster */}
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {design.posterFormat && (
+                                  <div className="bg-black/30 rounded-lg p-3 border border-white/5">
+                                    <span className="text-text-muted text-xs block mb-1">Format</span>
+                                    <span className="text-white font-bold text-lg">{design.posterFormat}</span>
+                                    <span className="text-text-muted text-xs block">
+                                      {design.posterFormat === 'A3' ? '29.7 × 42 cm' : '21 × 29.7 cm'}
+                                    </span>
+                                  </div>
+                                )}
+                                {design.frameColor && (
+                                  <div className="bg-black/30 rounded-lg p-3 border border-white/5">
+                                    <span className="text-text-muted text-xs block mb-1">Couleur du cadre</span>
+                                    <div className="flex items-center gap-2">
+                                      <span
+                                        className="w-8 h-8 rounded-lg border-2 border-white/20 inline-block"
+                                        style={{ backgroundColor: design.frameColor }}
+                                      />
+                                      <span className="text-white font-medium">{design.frameColor}</span>
+                                    </div>
+                                  </div>
+                                )}
+                                <div className="bg-black/30 rounded-lg p-3 border border-white/5">
+                                  <span className="text-text-muted text-xs block mb-1">Quantités</span>
+                                  <div className="flex flex-wrap gap-2">
+                                    {design.quantities && Object.entries(design.quantities).map(([format, qty]) => (
+                                      qty > 0 && (
+                                        <span key={format} className="text-white font-bold text-lg">
+                                          {format}: <span className="text-accent">{qty}</span>
+                                        </span>
+                                      )
+                                    ))}
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                          )}
-
-                          {/* Détails de placement - Face arrière */}
-                          {backElements.length > 0 && (
-                            <div className="mt-4 border-t border-white/10 pt-4">
-                              <h5 className="text-sm font-semibold text-accent mb-3 flex items-center gap-2">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
-                                </svg>
-                                Face Arrière — Placement ({backElements.length} élément{backElements.length > 1 ? 's' : ''})
-                              </h5>
-                              <div className="space-y-2">
-                                {backElements.map((el, i) => (
-                                  <div key={i} className="bg-black/30 rounded-lg p-3 border border-white/5">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <span className={`text-xs px-2 py-0.5 rounded font-medium ${
-                                        el.type === 'text' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'
-                                      }`}>
-                                        {el.type === 'text' ? 'TEXTE' : 'IMAGE'}
-                                      </span>
-                                      {el.type === 'text' && el.text && (
-                                        <span className="text-white text-sm font-medium truncate">"{el.text}"</span>
-                                      )}
+                          ) : (
+                            /* =================== T-SHIRT DETAILS =================== */
+                            <div>
+                              {/* Previews + infos */}
+                              <div className="flex gap-4 mb-4">
+                                <div className="flex gap-2">
+                                  {design.frontPreviewUrl && (
+                                    <div className="relative group/img">
+                                      <img
+                                        src={design.frontPreviewUrl}
+                                        alt={`${design.name} - avant`}
+                                        className="w-28 h-32 object-cover rounded-lg border border-white/10"
+                                      />
+                                      <button
+                                        onClick={() => {
+                                          const link = document.createElement('a');
+                                          link.href = design.frontPreviewUrl;
+                                          link.download = `tshirt-front-${design.id}.png`;
+                                          document.body.appendChild(link);
+                                          link.click();
+                                          document.body.removeChild(link);
+                                        }}
+                                        className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity rounded-lg flex items-center justify-center"
+                                        title="Télécharger"
+                                      >
+                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M6 20h12" />
+                                        </svg>
+                                      </button>
+                                      <span className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded">AVANT</span>
                                     </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                                      <div className="bg-white/5 rounded px-2 py-1.5">
-                                        <span className="text-text-muted block">Position X</span>
-                                        <span className="text-white font-mono">{el.posX.toFixed(1)} cm</span>
-                                      </div>
-                                      <div className="bg-white/5 rounded px-2 py-1.5">
-                                        <span className="text-text-muted block">Position Y</span>
-                                        <span className="text-white font-mono">{el.posY.toFixed(1)} cm</span>
-                                      </div>
-                                      <div className="bg-white/5 rounded px-2 py-1.5">
-                                        <span className="text-text-muted block">Largeur</span>
-                                        <span className="text-white font-mono">{el.widthCm.toFixed(1)} cm</span>
-                                      </div>
-                                      <div className="bg-white/5 rounded px-2 py-1.5">
-                                        <span className="text-text-muted block">Hauteur</span>
-                                        <span className="text-white font-mono">{el.heightCm.toFixed(1)} cm</span>
-                                      </div>
+                                  )}
+                                  {design.backPreviewUrl && (
+                                    <div className="relative group/img">
+                                      <img
+                                        src={design.backPreviewUrl}
+                                        alt={`${design.name} - arrière`}
+                                        className="w-28 h-32 object-cover rounded-lg border border-white/10"
+                                      />
+                                      <button
+                                        onClick={() => {
+                                          const link = document.createElement('a');
+                                          link.href = design.backPreviewUrl;
+                                          link.download = `tshirt-back-${design.id}.png`;
+                                          document.body.appendChild(link);
+                                          link.click();
+                                          document.body.removeChild(link);
+                                        }}
+                                        className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity rounded-lg flex items-center justify-center"
+                                        title="Télécharger"
+                                      >
+                                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M6 20h12" />
+                                        </svg>
+                                      </button>
+                                      <span className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded">ARRIERE</span>
                                     </div>
-                                    {el.type === 'text' && (
-                                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs mt-2">
-                                        {el.fontFamily && (
-                                          <div className="bg-white/5 rounded px-2 py-1.5">
-                                            <span className="text-text-muted block">Police</span>
-                                            <span className="text-white">{el.fontFamily}</span>
-                                          </div>
-                                        )}
-                                        {el.fontSize && (
-                                          <div className="bg-white/5 rounded px-2 py-1.5">
-                                            <span className="text-text-muted block">Taille police</span>
-                                            <span className="text-white font-mono">{el.fontSize}px</span>
-                                          </div>
-                                        )}
-                                        {el.fill && (
-                                          <div className="bg-white/5 rounded px-2 py-1.5 flex items-center gap-2">
-                                            <span className="text-text-muted">Couleur</span>
-                                            <span
-                                              className="w-4 h-4 rounded border border-white/20 inline-block"
-                                              style={{ backgroundColor: el.fill }}
-                                            />
-                                            <span className="text-white text-xs">{el.fill}</span>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )}
-                                    {el.angle !== 0 && (
-                                      <div className="mt-2 text-xs bg-white/5 rounded px-2 py-1.5 inline-block">
-                                        <span className="text-text-muted">Rotation: </span>
-                                        <span className="text-white font-mono">{el.angle.toFixed(1)}°</span>
-                                      </div>
-                                    )}
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  {design.tshirtColor && (
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <span className="text-text-muted text-sm">Couleur:</span>
+                                      <span
+                                        className="w-6 h-6 rounded-full border border-white/20 inline-block"
+                                        style={{ backgroundColor: design.tshirtColor }}
+                                      />
+                                      <span className="text-white text-sm">{design.tshirtColor}</span>
+                                    </div>
+                                  )}
+                                  <div className="mb-3">
+                                    <span className="text-text-muted text-sm block mb-1">Tailles / Quantités:</span>
+                                    <div className="flex flex-wrap gap-2">
+                                      {design.quantities && Object.entries(design.quantities).map(([size, qty]) => (
+                                        qty > 0 && (
+                                          <span
+                                            key={size}
+                                            className="text-sm bg-white/10 text-white px-3 py-1.5 rounded-lg font-medium"
+                                          >
+                                            {size}: <span className="text-accent">{qty}</span>
+                                          </span>
+                                        )
+                                      ))}
+                                    </div>
                                   </div>
-                                ))}
+                                  {design.product && (
+                                    <p className="text-text-muted text-sm">Produit: <span className="text-white">{design.product.name}</span></p>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          )}
 
-                          {/* Message si aucun élément */}
-                          {frontElements.length === 0 && backElements.length === 0 && (
-                            <div className="mt-3 text-text-muted text-sm italic border-t border-white/10 pt-3">
-                              Aucune donnée de placement disponible pour ce design.
+                              {/* Détails de placement - Face avant */}
+                              {frontElements.length > 0 && (
+                                <div className="mt-4 border-t border-white/10 pt-4">
+                                  <h5 className="text-sm font-semibold text-accent mb-3 flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
+                                    </svg>
+                                    Face Avant — Placement ({frontElements.length} élément{frontElements.length > 1 ? 's' : ''})
+                                  </h5>
+                                  <div className="space-y-2">
+                                    {frontElements.map((el, i) => (
+                                      <div key={i} className="bg-black/30 rounded-lg p-3 border border-white/5">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                                            el.type === 'text' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'
+                                          }`}>
+                                            {el.type === 'text' ? 'TEXTE' : 'IMAGE'}
+                                          </span>
+                                          {el.type === 'text' && el.text && (
+                                            <span className="text-white text-sm font-medium truncate">"{el.text}"</span>
+                                          )}
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                          <div className="bg-white/5 rounded px-2 py-1.5">
+                                            <span className="text-text-muted block">Position X</span>
+                                            <span className="text-white font-mono">{el.posX.toFixed(1)} cm</span>
+                                          </div>
+                                          <div className="bg-white/5 rounded px-2 py-1.5">
+                                            <span className="text-text-muted block">Position Y</span>
+                                            <span className="text-white font-mono">{el.posY.toFixed(1)} cm</span>
+                                          </div>
+                                          <div className="bg-white/5 rounded px-2 py-1.5">
+                                            <span className="text-text-muted block">Largeur</span>
+                                            <span className="text-white font-mono">{el.widthCm.toFixed(1)} cm</span>
+                                          </div>
+                                          <div className="bg-white/5 rounded px-2 py-1.5">
+                                            <span className="text-text-muted block">Hauteur</span>
+                                            <span className="text-white font-mono">{el.heightCm.toFixed(1)} cm</span>
+                                          </div>
+                                        </div>
+                                        {el.type === 'text' && (
+                                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs mt-2">
+                                            {el.fontFamily && (
+                                              <div className="bg-white/5 rounded px-2 py-1.5">
+                                                <span className="text-text-muted block">Police</span>
+                                                <span className="text-white">{el.fontFamily}</span>
+                                              </div>
+                                            )}
+                                            {el.fontSize && (
+                                              <div className="bg-white/5 rounded px-2 py-1.5">
+                                                <span className="text-text-muted block">Taille police</span>
+                                                <span className="text-white font-mono">{el.fontSize}px</span>
+                                              </div>
+                                            )}
+                                            {el.fill && (
+                                              <div className="bg-white/5 rounded px-2 py-1.5 flex items-center gap-2">
+                                                <span className="text-text-muted">Couleur</span>
+                                                <span
+                                                  className="w-4 h-4 rounded border border-white/20 inline-block"
+                                                  style={{ backgroundColor: el.fill }}
+                                                />
+                                                <span className="text-white text-xs">{el.fill}</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                        {el.angle !== 0 && (
+                                          <div className="mt-2 text-xs bg-white/5 rounded px-2 py-1.5 inline-block">
+                                            <span className="text-text-muted">Rotation: </span>
+                                            <span className="text-white font-mono">{el.angle.toFixed(1)}°</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Détails de placement - Face arrière */}
+                              {backElements.length > 0 && (
+                                <div className="mt-4 border-t border-white/10 pt-4">
+                                  <h5 className="text-sm font-semibold text-accent mb-3 flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
+                                    </svg>
+                                    Face Arrière — Placement ({backElements.length} élément{backElements.length > 1 ? 's' : ''})
+                                  </h5>
+                                  <div className="space-y-2">
+                                    {backElements.map((el, i) => (
+                                      <div key={i} className="bg-black/30 rounded-lg p-3 border border-white/5">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                                            el.type === 'text' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'
+                                          }`}>
+                                            {el.type === 'text' ? 'TEXTE' : 'IMAGE'}
+                                          </span>
+                                          {el.type === 'text' && el.text && (
+                                            <span className="text-white text-sm font-medium truncate">"{el.text}"</span>
+                                          )}
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                          <div className="bg-white/5 rounded px-2 py-1.5">
+                                            <span className="text-text-muted block">Position X</span>
+                                            <span className="text-white font-mono">{el.posX.toFixed(1)} cm</span>
+                                          </div>
+                                          <div className="bg-white/5 rounded px-2 py-1.5">
+                                            <span className="text-text-muted block">Position Y</span>
+                                            <span className="text-white font-mono">{el.posY.toFixed(1)} cm</span>
+                                          </div>
+                                          <div className="bg-white/5 rounded px-2 py-1.5">
+                                            <span className="text-text-muted block">Largeur</span>
+                                            <span className="text-white font-mono">{el.widthCm.toFixed(1)} cm</span>
+                                          </div>
+                                          <div className="bg-white/5 rounded px-2 py-1.5">
+                                            <span className="text-text-muted block">Hauteur</span>
+                                            <span className="text-white font-mono">{el.heightCm.toFixed(1)} cm</span>
+                                          </div>
+                                        </div>
+                                        {el.type === 'text' && (
+                                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs mt-2">
+                                            {el.fontFamily && (
+                                              <div className="bg-white/5 rounded px-2 py-1.5">
+                                                <span className="text-text-muted block">Police</span>
+                                                <span className="text-white">{el.fontFamily}</span>
+                                              </div>
+                                            )}
+                                            {el.fontSize && (
+                                              <div className="bg-white/5 rounded px-2 py-1.5">
+                                                <span className="text-text-muted block">Taille police</span>
+                                                <span className="text-white font-mono">{el.fontSize}px</span>
+                                              </div>
+                                            )}
+                                            {el.fill && (
+                                              <div className="bg-white/5 rounded px-2 py-1.5 flex items-center gap-2">
+                                                <span className="text-text-muted">Couleur</span>
+                                                <span
+                                                  className="w-4 h-4 rounded border border-white/20 inline-block"
+                                                  style={{ backgroundColor: el.fill }}
+                                                />
+                                                <span className="text-white text-xs">{el.fill}</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                        {el.angle !== 0 && (
+                                          <div className="mt-2 text-xs bg-white/5 rounded px-2 py-1.5 inline-block">
+                                            <span className="text-text-muted">Rotation: </span>
+                                            <span className="text-white font-mono">{el.angle.toFixed(1)}°</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Message si aucun élément */}
+                              {frontElements.length === 0 && backElements.length === 0 && (
+                                <div className="mt-3 text-text-muted text-sm italic border-t border-white/10 pt-3">
+                                  Aucune donnée de placement disponible pour ce design.
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

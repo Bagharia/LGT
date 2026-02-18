@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { productsAPI, designsAPI, ordersAPI } from '../services/api';
+import { useToast } from '../components/Toast';
 import DesignCanvas from '../components/DesignEditor/Canvas';
 import RightPanel from '../components/DesignEditor/RightPanel';
 import * as fabric from 'fabric';
@@ -8,6 +9,7 @@ import * as fabric from 'fabric';
 const Editor = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const [searchParams] = useSearchParams();
 
   const [product, setProduct] = useState(null);
@@ -117,7 +119,7 @@ const Editor = () => {
       }
     } catch (error) {
       console.error('Erreur lors du chargement du design:', error);
-      alert('Erreur lors du chargement du design');
+      toast.error('Erreur lors du chargement du design');
     }
   };
 
@@ -132,7 +134,7 @@ const Editor = () => {
       }
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Produit non trouvé');
+      toast.error('Produit non trouvé');
       navigate('/products');
     } finally {
       setLoading(false);
@@ -142,7 +144,7 @@ const Editor = () => {
   // Sauvegarder le design (sans créer de commande)
   const handleSaveDesign = async () => {
     if (!frontCanvas) {
-      alert('Aucun design à sauvegarder');
+      toast.warning('Aucun design à sauvegarder');
       return;
     }
 
@@ -183,10 +185,11 @@ const Editor = () => {
         navigate(`/editor/${productId}?designId=${newDesignId}`, { replace: true });
       }
 
-      alert('Design sauvegardé !');
+      toast.success('Design sauvegardé !');
+      navigate('/my-designs');
     } catch (error) {
       console.error('Erreur:', error);
-      alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
+      toast.error(error.response?.data?.error || 'Erreur lors de la sauvegarde');
     } finally {
       setSaving(false);
     }
@@ -195,7 +198,7 @@ const Editor = () => {
   // Commander le design (sauvegarder + créer commande)
   const handleOrderDesign = async (quantities, totalPrice, finalPrice) => {
     if (!frontCanvas) {
-      alert('Aucun design à commander');
+      toast.warning('Aucun design à commander');
       return;
     }
 
@@ -255,7 +258,7 @@ const Editor = () => {
       navigate(`/checkout?orderId=${orderResult.order.id}`);
     } catch (error) {
       console.error('Erreur:', error);
-      alert(error.response?.data?.error || 'Erreur lors de la commande');
+      toast.error(error.response?.data?.error || 'Erreur lors de la commande');
     } finally {
       setSaving(false);
     }

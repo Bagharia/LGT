@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { categoriesAPI } from '../../services/api';
+import { useToast } from '../../components/Toast';
 import Header from '../../components/Header';
 
 const AdminCategories = () => {
+  const toast = useToast();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -54,7 +56,7 @@ const AdminCategories = () => {
       loadCategories();
     } catch (error) {
       console.error('Erreur:', error);
-      alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
+      toast.error(error.response?.data?.error || 'Erreur lors de la sauvegarde');
     }
   };
 
@@ -75,7 +77,7 @@ const AdminCategories = () => {
       loadCategories();
     } catch (error) {
       console.error('Erreur:', error);
-      alert(error.response?.data?.error || 'Erreur lors de la suppression');
+      toast.error(error.response?.data?.error || 'Erreur lors de la suppression');
     }
   };
 

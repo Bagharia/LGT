@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { productsAPI, categoriesAPI } from '../../services/api';
+import { useToast } from '../../components/Toast';
 import Header from '../../components/Header';
 import ImageUpload from '../../components/ImageUpload';
 
 const AdminProducts = () => {
+  const toast = useToast();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ const AdminProducts = () => {
       loadData();
     } catch (error) {
       console.error('Erreur:', error);
-      alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
+      toast.error(error.response?.data?.error || 'Erreur lors de la sauvegarde');
     }
   };
 
@@ -95,7 +97,7 @@ const AdminProducts = () => {
       loadData();
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors de la suppression');
+      toast.error('Erreur lors de la suppression');
     }
   };
 

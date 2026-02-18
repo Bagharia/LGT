@@ -49,6 +49,10 @@ export const AuthProvider = ({ children }) => {
     return user?.role === 'ADMIN';
   };
 
+  const isPro = () => {
+    return user?.accountType === 'pro';
+  };
+
   const value = {
     user,
     login,
@@ -56,6 +60,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     isAuthenticated,
     isAdmin,
+    isPro,
     loading,
   };
 

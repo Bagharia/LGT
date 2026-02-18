@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import * as fabric from 'fabric';
 import { CANVAS_CONFIG } from './Canvas';
+import { useAuth } from '../../context/AuthContext';
 
 const { PX_PER_CM, PRINT_AREA } = CANVAS_CONFIG;
 
 const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, onOrder, saving, activeToolSection, setActiveToolSection, designId }) => {
+  const { isPro } = useAuth();
   const [textValue, setTextValue] = useState('Votre texte');
   const [textColor, setTextColor] = useState('#000000');
   const [fontSize, setFontSize] = useState(40);
@@ -455,6 +457,11 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, onOr
   // Appliquer réduction si >= 6 articles
   const discount = totalArticles >= 6 ? 0.10 : 0;
   const finalPrice = totalPrice * (1 - discount);
+
+  // Validation pro : minimum 20 articles
+  const isProAccount = isPro();
+  const proMinArticles = 20;
+  const proCanOrder = !isProAccount || totalArticles >= proMinArticles;
 
   return (
     <div className="spreadshirt-right-panel">
@@ -1079,6 +1086,23 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, onOr
             </p>
           </div>
 
+          {/* Pro account info */}
+          {isProAccount && (
+            <div className={`p-3 rounded-lg border ${proCanOrder ? 'bg-green-500/10 border-green-500/30' : 'bg-yellow-500/10 border-yellow-500/30'}`}>
+              <div className="flex items-center gap-2">
+                <svg className={`w-4 h-4 ${proCanOrder ? 'text-green-400' : 'text-yellow-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span className={`text-sm font-medium ${proCanOrder ? 'text-green-400' : 'text-yellow-400'}`}>
+                  Compte Pro — {proCanOrder
+                    ? `${totalArticles} articles`
+                    : `${totalArticles}/${proMinArticles} articles (min. ${proMinArticles})`
+                  }
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Save & Order buttons */}
           <div className="space-y-3">
             <button
@@ -1090,12 +1114,12 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, onOr
             </button>
             <button
               className={`w-full py-4 rounded-lg font-semibold text-lg ${
-                totalArticles > 0
+                totalArticles > 0 && proCanOrder
                   ? 'bg-cyan-400 hover:bg-cyan-500 text-white'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
               onClick={() => onOrder(quantities, totalPrice, finalPrice)}
-              disabled={totalArticles === 0 || saving}
+              disabled={totalArticles === 0 || !proCanOrder || saving}
             >
               {saving ? 'Enregistrement...' : 'Commander'}
             </button>

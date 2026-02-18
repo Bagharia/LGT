@@ -14,6 +14,24 @@ exports.createOrder = async (req, res) => {
     console.log('📦 Designs reçus:', JSON.stringify(designs, null, 2));
     console.log('📦 Prix total:', totalPrice);
 
+    // Vérifier minimum articles pour comptes pro
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { accountType: true } });
+    if (user?.accountType === 'pro') {
+      let totalArticles = 0;
+      if (type === 'ready-made' && quantities) {
+        totalArticles = Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
+      } else if (designs && Array.isArray(designs)) {
+        for (const d of designs) {
+          if (d.quantities) {
+            totalArticles += Object.values(d.quantities).reduce((sum, qty) => sum + qty, 0);
+          }
+        }
+      }
+      if (totalArticles < 20) {
+        return res.status(400).json({ error: 'Les comptes professionnels doivent commander au minimum 20 articles' });
+      }
+    }
+
     // Créer la commande
     const order = await prisma.order.create({
       data: {
@@ -226,7 +244,11 @@ exports.getAllOrders = async (req, res) => {
           include: {
             design: {
               include: {
-                product: true
+                product: {
+                  include: {
+                    category: true
+                  }
+                }
               }
             }
           }
@@ -258,6 +280,9 @@ exports.getAllOrders = async (req, res) => {
         frontDesignJson: od.design.frontDesignJson,
         backDesignJson: od.design.backDesignJson,
         tshirtColor: od.design.tshirtColor,
+        posterImageUrl: od.design.posterImageUrl,
+        frameColor: od.design.frameColor,
+        posterFormat: od.design.posterFormat,
         quantities: od.quantities,
         finalPrice: od.finalPrice,
         product: od.design.product

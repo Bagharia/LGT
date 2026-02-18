@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { productsAPI, designsAPI, ordersAPI } from '../services/api';
+import { useToast } from '../components/Toast';
+import { useAuth } from '../context/AuthContext';
 
 const FRAME_COLORS = [
   { name: 'Noir', value: '#000000' },
@@ -15,11 +17,22 @@ const FORMATS = {
   A3: { width: 297, height: 420, label: 'A3 (29.7×42 cm)' },
 };
 
+// Lighten or darken a hex color by a percentage
+const adjustColor = (hex, percent) => {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = Math.min(255, Math.max(0, (num >> 16) + Math.round(2.55 * percent)));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + Math.round(2.55 * percent)));
+  const b = Math.min(255, Math.max(0, (num & 0x0000FF) + Math.round(2.55 * percent)));
+  return `#${(0x1000000 + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+};
+
 const PosterEditor = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const previewRef = useRef(null);
+  const toast = useToast();
+  const { isPro } = useAuth();
   const fileInputRef = useRef(null);
 
   const [product, setProduct] = useState(null);
@@ -55,7 +68,7 @@ const PosterEditor = () => {
       setProduct(data.product);
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Produit non trouvé');
+      toast.error('Produit non trouvé');
       navigate('/products');
     } finally {
       setLoading(false);
@@ -115,7 +128,7 @@ const PosterEditor = () => {
 
   const handleSave = async () => {
     if (!posterImage) {
-      alert('Veuillez uploader une image');
+      toast.warning('Veuillez uploader une image');
       return;
     }
 
@@ -145,10 +158,11 @@ const PosterEditor = () => {
         navigate(`/poster-editor/${productId}?designId=${newId}`, { replace: true });
       }
 
-      alert('Design sauvegardé !');
+      toast.success('Design sauvegardé !');
+      navigate('/my-designs');
     } catch (error) {
       console.error('Erreur:', error);
-      alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
+      toast.error(error.response?.data?.error || 'Erreur lors de la sauvegarde');
     } finally {
       setSaving(false);
     }
@@ -157,11 +171,11 @@ const PosterEditor = () => {
   const handleOrder = async () => {
     const totalArticles = Object.values(quantities).reduce((sum, q) => sum + q, 0);
     if (totalArticles === 0) {
-      alert('Veuillez sélectionner au moins une quantité');
+      toast.warning('Veuillez sélectionner au moins une quantité');
       return;
     }
     if (!posterImage) {
-      alert('Veuillez uploader une image');
+      toast.warning('Veuillez uploader une image');
       return;
     }
 
@@ -211,7 +225,7 @@ const PosterEditor = () => {
       navigate(`/checkout?orderId=${orderResult.order.id}`);
     } catch (error) {
       console.error('Erreur:', error);
-      alert(error.response?.data?.error || 'Erreur lors de la commande');
+      toast.error(error.response?.data?.error || 'Erreur lors de la commande');
     } finally {
       setSaving(false);
     }
@@ -230,13 +244,19 @@ const PosterEditor = () => {
   const discount = totalArticles >= 6 ? 0.10 : 0;
   const finalPrice = totalPrice * (1 - discount);
 
+  // Validation pro : minimum 20 articles
+  const isProAccount = isPro();
+  const proMinArticles = 20;
+  const proCanOrder = !isProAccount || totalArticles >= proMinArticles;
+
   // Frame dimensions for preview (proportional)
   const fmt = FORMATS[activeFormat];
   const maxH = 450;
   const scale = maxH / fmt.height;
   const frameW = fmt.width * scale;
   const frameH = fmt.height * scale;
-  const borderWidth = 16;
+  const frameThickness = 20;
+  const matWidth = 24; // Passe-partout width
 
   if (loading) {
     return (
@@ -296,29 +316,103 @@ const PosterEditor = () => {
       <div className="flex-1 flex">
         {/* Center - Preview */}
         <div className="flex-1 flex items-center justify-center p-8">
+          {/* Wall shadow */}
           <div
             ref={previewRef}
             className="relative"
             style={{
-              width: frameW + borderWidth * 2,
-              height: frameH + borderWidth * 2,
-              backgroundColor: frameColor,
-              borderRadius: '4px',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)',
-              padding: borderWidth,
+              width: frameW + (frameThickness + matWidth) * 2,
+              height: frameH + (frameThickness + matWidth) * 2,
+              filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.4)) drop-shadow(0 2px 8px rgba(0,0,0,0.3))',
             }}
           >
-            {/* Inner white mat */}
+            {/* Outer frame edge (3D effect - light edge) */}
             <div
               style={{
+                position: 'absolute',
+                inset: 0,
+                background: frameColor,
+                borderRadius: '2px',
+                boxShadow: `
+                  inset 2px 2px 4px rgba(255,255,255,0.15),
+                  inset -1px -1px 3px rgba(0,0,0,0.3)
+                `,
+              }}
+            />
+
+            {/* Frame body with depth */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 3,
+                background: `linear-gradient(145deg,
+                  ${adjustColor(frameColor, 15)},
+                  ${frameColor} 30%,
+                  ${adjustColor(frameColor, -10)} 70%,
+                  ${adjustColor(frameColor, -20)}
+                )`,
+                borderRadius: '1px',
+                boxShadow: `
+                  inset 1px 1px 2px rgba(255,255,255,0.1),
+                  inset -1px -1px 2px rgba(0,0,0,0.15)
+                `,
+              }}
+            />
+
+            {/* Inner frame edge (shadow into mat) */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: frameThickness - 2,
+                boxShadow: `
+                  inset 2px 2px 6px rgba(0,0,0,0.4),
+                  inset -1px -1px 4px rgba(0,0,0,0.2)
+                `,
+                borderRadius: '1px',
+              }}
+            />
+
+            {/* Mat (passe-partout) */}
+            <div
+              style={{
+                position: 'absolute',
+                top: frameThickness,
+                left: frameThickness,
+                right: frameThickness,
+                bottom: frameThickness,
+                backgroundColor: '#F5F3EE',
+                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.05)',
+              }}
+            />
+
+            {/* Mat bevel (inner edge of mat, slight shadow toward image) */}
+            <div
+              style={{
+                position: 'absolute',
+                top: frameThickness + matWidth - 2,
+                left: frameThickness + matWidth - 2,
+                right: frameThickness + matWidth - 2,
+                bottom: frameThickness + matWidth - 2,
+                boxShadow: `
+                  inset 1px 1px 3px rgba(0,0,0,0.15),
+                  inset -1px -1px 1px rgba(255,255,255,0.3)
+                `,
+              }}
+            />
+
+            {/* Image area */}
+            <div
+              style={{
+                position: 'absolute',
+                top: frameThickness + matWidth,
+                left: frameThickness + matWidth,
                 width: frameW,
                 height: frameH,
-                backgroundColor: '#F5F5F0',
-                padding: 8,
+                backgroundColor: '#FAFAF7',
+                overflow: 'hidden',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                overflow: 'hidden',
               }}
             >
               {posterImage ? (
@@ -340,6 +434,19 @@ const PosterEditor = () => {
                 </div>
               )}
             </div>
+
+            {/* Glass reflection effect */}
+            <div
+              style={{
+                position: 'absolute',
+                top: frameThickness,
+                left: frameThickness,
+                right: frameThickness,
+                bottom: frameThickness,
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.02) 100%)',
+                pointerEvents: 'none',
+              }}
+            />
           </div>
         </div>
 
@@ -477,6 +584,23 @@ const PosterEditor = () => {
               </div>
             </div>
 
+            {/* Pro account info */}
+            {isProAccount && (
+              <div className={`p-3 rounded-lg border ${proCanOrder ? 'bg-green-500/10 border-green-500/30' : 'bg-yellow-500/10 border-yellow-500/30'}`}>
+                <div className="flex items-center gap-2">
+                  <svg className={`w-4 h-4 ${proCanOrder ? 'text-green-400' : 'text-yellow-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <span className={`text-sm font-medium ${proCanOrder ? 'text-green-400' : 'text-yellow-400'}`}>
+                    Compte Pro — {proCanOrder
+                      ? `${totalArticles} articles`
+                      : `${totalArticles}/${proMinArticles} articles (min. ${proMinArticles})`
+                    }
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="space-y-3">
               <button
@@ -488,7 +612,7 @@ const PosterEditor = () => {
               </button>
               <button
                 onClick={handleOrder}
-                disabled={saving || !posterImage || totalArticles === 0}
+                disabled={saving || !posterImage || totalArticles === 0 || !proCanOrder}
                 className="w-full py-4 rounded-xl font-semibold text-lg bg-accent text-primary hover:bg-accent/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {saving ? 'En cours...' : 'Commander'}

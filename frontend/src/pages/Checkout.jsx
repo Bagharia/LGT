@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { ordersAPI, stripeAPI } from '../services/api';
+import { useToast } from '../components/Toast';
 import Header from '../components/Header';
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('orderId');
 
@@ -48,7 +50,7 @@ const Checkout = () => {
       setLoading(false);
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Commande non trouvée');
+      toast.error('Commande non trouvée');
       navigate('/my-orders');
     }
   };
@@ -65,7 +67,7 @@ const Checkout = () => {
 
     if (!formData.firstName || !formData.lastName || !formData.email ||
         !formData.address || !formData.city || !formData.zipCode) {
-      alert('Veuillez remplir tous les champs obligatoires');
+      toast.warning('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
@@ -102,7 +104,7 @@ const Checkout = () => {
     } catch (error) {
       console.error('Erreur:', error);
       const details = error.response?.data?.details || error.message || '';
-      alert('Erreur lors de la création du paiement: ' + details);
+      toast.error('Erreur lors de la création du paiement: ' + details);
       setSubmitting(false);
       setCreatingOrder(false);
     }

@@ -18,7 +18,7 @@ const generateToken = (userId, email, role) => {
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { email, password, firstName, lastName } = req.body;
+    const { email, password, firstName, lastName, accountType } = req.body;
 
     // Validation des champs
     if (!email || !password) {
@@ -55,7 +55,8 @@ exports.register = async (req, res) => {
         password: hashedPassword,
         firstName: firstName || null,
         lastName: lastName || null,
-        role: 'USER' // Par défaut USER
+        role: 'USER', // Par défaut USER
+        accountType: accountType || 'personal'
       }
     });
 
@@ -71,7 +72,8 @@ exports.register = async (req, res) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role
+        role: user.role,
+        accountType: user.accountType
       }
     });
 
@@ -129,7 +131,8 @@ exports.login = async (req, res) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role
+        role: user.role,
+        accountType: user.accountType
       }
     });
 
@@ -155,6 +158,7 @@ exports.getMe = async (req, res) => {
         firstName: true,
         lastName: true,
         role: true,
+        accountType: true,
         createdAt: true
       }
     });

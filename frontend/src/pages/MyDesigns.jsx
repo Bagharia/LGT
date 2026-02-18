@@ -1,35 +1,31 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { designsAPI, categoriesAPI } from '../services/api';
+import { useToast } from '../components/Toast';
 import Header from '../components/Header';
 
 const MyDesigns = () => {
+  const toast = useToast();
   const [designs, setDesigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [activeTab, setActiveTab] = useState('tshirt'); // 'tshirt' or 'poster'
 
   useEffect(() => {
-    loadDesigns();
-    loadCategories();
+    loadData();
   }, []);
 
-  const loadCategories = async () => {
+  const loadData = async () => {
     try {
-      const data = await categoriesAPI.getAll();
-      setCategories(data.categories || []);
+      const [designsData, categoriesData] = await Promise.all([
+        designsAPI.getMy().catch(err => { console.error('Designs error:', err); return { designs: [] }; }),
+        categoriesAPI.getAll(),
+      ]);
+      setDesigns(designsData.designs);
+      setCategories(categoriesData.categories || []);
     } catch (error) {
-      console.error('Erreur lors du chargement des catégories:', error);
-    }
-  };
-
-  const loadDesigns = async () => {
-    try {
-      const data = await designsAPI.getMy();
-      setDesigns(data.designs);
-      setLoading(false);
-    } catch (error) {
-      console.error('Erreur lors du chargement des designs:', error);
+      console.error('Erreur lors du chargement:', error);
+    } finally {
       setLoading(false);
     }
   };
@@ -44,7 +40,7 @@ const MyDesigns = () => {
       setDesigns(designs.filter(d => d.id !== id));
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
-      alert('Erreur lors de la suppression du design');
+      toast.error('Erreur lors de la suppression du design');
     }
   };
 
@@ -293,47 +289,11 @@ const MyDesigns = () => {
           </div>
         )}
 
-        {/* Empty state when no designs for current tab */}
+        {/* Hint text when no designs */}
         {!loading && currentDesigns.length === 0 && (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 mx-auto mb-8 rounded-3xl bg-gradient-to-br from-accent to-cyan-400 flex items-center justify-center">
-              {activeTab === 'tshirt' ? (
-                <svg className="w-12 h-12 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 2L1 7l3 2 1-3h2.5m0 0C8 6 9 8 12 8s4-2 4.5-2m0 0H19l1 3 3-2-5.5-5M16.5 6v0M7.5 6L7 22h10l-.5-16" />
-                </svg>
-              ) : (
-                <svg className="w-12 h-12 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <rect x="5" y="5" width="14" height="14" rx="1" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l4-4 3 3 2-2 5 5" />
-                </svg>
-              )}
-            </div>
-            <h3 className="font-space-grotesk text-3xl font-bold text-white mb-4">
-              Aucun design {activeTab === 'tshirt' ? 'T-Shirt' : 'Poster'}
-            </h3>
-            <p className="text-text-muted text-lg mb-8 max-w-md mx-auto">
-              {activeTab === 'tshirt'
-                ? 'Commencez à créer vos T-shirts personnalisés dès maintenant.'
-                : 'Créez votre premier poster avec cadre personnalisé.'}
-            </p>
-            {activeTab === 'tshirt' && (
-              <Link to={defaultTshirtProduct ? `/editor/${defaultTshirtProduct.id}` : '/products?category=t-shirts'} className="btn-primary">
-                Créer un T-Shirt
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </Link>
-            )}
-            {activeTab === 'poster' && (
-              <Link to={defaultPosterProduct ? `/poster-editor/${defaultPosterProduct.id}` : '/products?category=posters'} className="btn-primary">
-                Créer un Poster
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </Link>
-            )}
-          </div>
+          <p className="text-center text-text-muted mt-8">
+            Cliquez sur le "+" ci-dessus pour créer votre premier {activeTab === 'tshirt' ? 'T-Shirt' : 'Poster'}.
+          </p>
         )}
       </section>
 

@@ -9,6 +9,7 @@ const Register = () => {
     confirmPassword: '',
     firstName: '',
     lastName: '',
+    accountType: 'personal',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -44,7 +45,8 @@ const Register = () => {
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,
-        lastName: formData.lastName
+        lastName: formData.lastName,
+        accountType: formData.accountType
       });
       navigate('/');
     } catch (error) {
@@ -205,6 +207,49 @@ const Register = () => {
                 className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-text-muted focus:outline-none focus:border-accent transition-colors"
               />
             </div>
+
+            {/* Pro Account Toggle */}
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, accountType: formData.accountType === 'pro' ? 'personal' : 'pro' })}
+              className={`w-full p-4 rounded-xl border-2 transition-all duration-300 text-left ${
+                formData.accountType === 'pro'
+                  ? 'border-accent bg-accent/10'
+                  : 'border-white/10 bg-white/5 hover:border-white/20'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  formData.accountType === 'pro' ? 'bg-accent/20' : 'bg-white/10'
+                }`}>
+                  <svg className={`w-5 h-5 ${formData.accountType === 'pro' ? 'text-accent' : 'text-white/50'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`font-semibold ${formData.accountType === 'pro' ? 'text-white' : 'text-white/70'}`}>
+                      Compte Professionnel
+                    </span>
+                    {formData.accountType === 'pro' && (
+                      <span className="px-2 py-0.5 rounded-full bg-accent/20 text-accent text-xs font-medium">PRO</span>
+                    )}
+                  </div>
+                  <p className="text-text-muted text-xs mt-0.5">
+                    Minimum 20 articles par commande
+                  </p>
+                </div>
+                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
+                  formData.accountType === 'pro' ? 'border-accent bg-accent' : 'border-white/30'
+                }`}>
+                  {formData.accountType === 'pro' && (
+                    <svg className="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+            </button>
 
             <button
               type="submit"
