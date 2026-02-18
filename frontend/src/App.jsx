@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import Editor from './pages/Editor';
+import PosterEditor from './pages/PosterEditor';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -49,7 +50,7 @@ const PublicRoute = ({ children }) => {
 
 function AppContent() {
   const location = useLocation();
-  const isEditorRoute = location.pathname.startsWith('/editor');
+  const isEditorRoute = location.pathname.startsWith('/editor') || location.pathname.startsWith('/poster-editor');
   const isProductDetailRoute = location.pathname.startsWith('/product/');
 
   // Pages with new THREAD design (have their own layout)
@@ -66,6 +67,14 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <Editor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/poster-editor/:productId"
+            element={
+              <ProtectedRoute>
+                <PosterEditor />
               </ProtectedRoute>
             }
           />

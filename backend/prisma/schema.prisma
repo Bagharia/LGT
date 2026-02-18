@@ -93,6 +93,11 @@ model Design {
   finalPrice  Float?   // Prix final après réduction
   tshirtColor String?  // Couleur du t-shirt (#FFFFFF, #000000, etc.)
 
+  // Données poster (si le produit est un poster/cadre)
+  posterImageUrl String? @db.Text  // Image uploadée en dataURL
+  frameColor     String?           // Couleur du cadre (#000000, etc.)
+  posterFormat   String?           // "A3" ou "A4"
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

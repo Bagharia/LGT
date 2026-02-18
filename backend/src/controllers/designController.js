@@ -17,13 +17,16 @@ exports.saveDesign = async (req, res) => {
       quantities,
       totalPrice,
       finalPrice,
-      tshirtColor
+      tshirtColor,
+      posterImageUrl,
+      frameColor,
+      posterFormat
     } = req.body;
 
     // Validation
-    if (!productId || !frontDesignJson) {
+    if (!productId || (!frontDesignJson && !posterImageUrl)) {
       return res.status(400).json({
-        error: 'ProductId et frontDesignJson sont requis'
+        error: 'ProductId et frontDesignJson (ou posterImageUrl) sont requis'
       });
     }
 
@@ -43,7 +46,7 @@ exports.saveDesign = async (req, res) => {
       data: {
         userId: req.user.userId,
         productId: parseInt(productId),
-        frontDesignJson,
+        frontDesignJson: frontDesignJson || null,
         backDesignJson: backDesignJson || null,
         frontPreviewUrl: frontPreviewUrl || null,
         backPreviewUrl: backPreviewUrl || null,
@@ -51,7 +54,10 @@ exports.saveDesign = async (req, res) => {
         quantities: quantities || null,
         totalPrice: totalPrice || null,
         finalPrice: finalPrice || null,
-        tshirtColor: tshirtColor || null
+        tshirtColor: tshirtColor || null,
+        posterImageUrl: posterImageUrl || null,
+        frameColor: frameColor || null,
+        posterFormat: posterFormat || null
       },
       include: {
         product: true
@@ -149,7 +155,10 @@ exports.updateDesign = async (req, res) => {
       quantities,
       totalPrice,
       finalPrice,
-      tshirtColor
+      tshirtColor,
+      posterImageUrl,
+      frameColor,
+      posterFormat
     } = req.body;
 
     // Vérifier que le design existe et appartient à l'utilisateur
@@ -180,6 +189,9 @@ exports.updateDesign = async (req, res) => {
     if (totalPrice !== undefined) updateData.totalPrice = totalPrice;
     if (finalPrice !== undefined) updateData.finalPrice = finalPrice;
     if (tshirtColor !== undefined) updateData.tshirtColor = tshirtColor;
+    if (posterImageUrl !== undefined) updateData.posterImageUrl = posterImageUrl;
+    if (frameColor !== undefined) updateData.frameColor = frameColor;
+    if (posterFormat !== undefined) updateData.posterFormat = posterFormat;
 
     // Mettre à jour le design
     const design = await prisma.design.update({

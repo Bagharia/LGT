@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const POSTER_FORMATS = ['A4', 'A3'];
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -14,6 +15,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState('front');
   const [selectedSize, setSelectedSize] = useState('M');
+  const [selectedFormat, setSelectedFormat] = useState('A4');
   const [quantity, setQuantity] = useState(1);
   const [error, setError] = useState(null);
   const [isOrdering, setIsOrdering] = useState(false);
@@ -43,11 +45,17 @@ const ProductDetail = () => {
     setIsOrdering(true);
 
     try {
-      // Créer les quantités par taille
+      // Créer les quantités par taille ou format
       const quantities = {};
-      SIZES.forEach(size => {
-        quantities[size] = size === selectedSize ? quantity : 0;
-      });
+      if (isPoster) {
+        POSTER_FORMATS.forEach(fmt => {
+          quantities[fmt] = fmt === selectedFormat ? quantity : 0;
+        });
+      } else {
+        SIZES.forEach(size => {
+          quantities[size] = size === selectedSize ? quantity : 0;
+        });
+      }
 
       // Calculer le prix total
       const totalPrice = product.basePrice * quantity;
@@ -95,6 +103,7 @@ const ProductDetail = () => {
     );
   }
 
+  const isPoster = product.category?.hasTwoSides === false;
   const currentImage = selectedImage === 'front' ? product.mockupFrontUrl : product.mockupBackUrl;
   const totalPrice = (product.basePrice * quantity).toFixed(2);
 
@@ -179,28 +188,49 @@ const ProductDetail = () => {
 
               {/* Description */}
               <p className="text-text-muted text-lg leading-relaxed mb-8">
-                {product.description || 'T-shirt de haute qualité avec design exclusif LGT. Disponible en plusieurs tailles.'}
+                {product.description || (isPoster ? 'Poster personnalisé avec cadre de qualité.' : 'T-shirt de haute qualité avec design exclusif LGT. Disponible en plusieurs tailles.')}
               </p>
 
-              {/* Size Selection */}
-              <div className="mb-6">
-                <label className="block text-white font-medium mb-3">Taille</label>
-                <div className="flex flex-wrap gap-3">
-                  {SIZES.map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`w-14 h-14 rounded-xl font-medium transition-all ${
-                        selectedSize === size
-                          ? 'bg-accent text-primary'
-                          : 'bg-white/5 text-white border border-white/10 hover:border-white/30'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+              {/* Size Selection (T-shirts) or Format Selection (Posters) */}
+              {isPoster ? (
+                <div className="mb-6">
+                  <label className="block text-white font-medium mb-3">Format</label>
+                  <div className="flex flex-wrap gap-3">
+                    {POSTER_FORMATS.map((fmt) => (
+                      <button
+                        key={fmt}
+                        onClick={() => setSelectedFormat(fmt)}
+                        className={`px-6 h-14 rounded-xl font-medium transition-all ${
+                          selectedFormat === fmt
+                            ? 'bg-accent text-primary'
+                            : 'bg-white/5 text-white border border-white/10 hover:border-white/30'
+                        }`}
+                      >
+                        {fmt}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="mb-6">
+                  <label className="block text-white font-medium mb-3">Taille</label>
+                  <div className="flex flex-wrap gap-3">
+                    {SIZES.map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => setSelectedSize(size)}
+                        className={`w-14 h-14 rounded-xl font-medium transition-all ${
+                          selectedSize === size
+                            ? 'bg-accent text-primary'
+                            : 'bg-white/5 text-white border border-white/10 hover:border-white/30'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Quantity Selection */}
               <div className="mb-8">
@@ -249,13 +279,30 @@ const ProductDetail = () => {
                 )}
               </button>
 
+              {/* Customize Button */}
+              <button
+                onClick={() => {
+                  if (!isAuthenticated()) {
+                    navigate('/login', { state: { from: `/product/${id}` } });
+                    return;
+                  }
+                  navigate(isPoster ? `/poster-editor/${id}` : `/editor/${id}`);
+                }}
+                className="w-full mt-3 py-4 rounded-xl font-semibold text-lg border-2 border-accent text-accent hover:bg-accent/10 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Personnaliser
+              </button>
+
               {/* Features */}
               <div className="mt-8 space-y-3">
                 <div className="flex items-center gap-3 text-text-muted">
                   <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span>100% Coton Bio Premium</span>
+                  <span>{isPoster ? 'Impression haute qualité' : '100% Coton Bio Premium'}</span>
                 </div>
                 <div className="flex items-center gap-3 text-text-muted">
                   <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
