@@ -10,6 +10,8 @@ import PosterEditor from './pages/PosterEditor';
 import Checkout from './pages/Checkout';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import MyDesigns from './pages/MyDesigns';
 import PaymentSuccess from './pages/PaymentSuccess';
 
@@ -54,7 +56,7 @@ function AppContent() {
   const isProductDetailRoute = location.pathname.startsWith('/product/');
 
   // Pages with new THREAD design (have their own layout)
-  const fullPageRoutes = ['/', '/products', '/login', '/register', '/my-designs', '/my-orders', '/checkout', '/payment-success', '/profile', '/admin', '/admin/orders', '/admin/products', '/admin/categories'];
+  const fullPageRoutes = ['/', '/products', '/login', '/register', '/forgot-password', '/reset-password', '/my-designs', '/my-orders', '/checkout', '/payment-success', '/profile', '/admin', '/admin/orders', '/admin/products', '/admin/categories'];
   const isFullPageRoute = fullPageRoutes.includes(location.pathname) || isProductDetailRoute;
 
   return (
@@ -101,6 +103,8 @@ function AppContent() {
               </PublicRoute>
             }
           />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route
             path="/my-designs"
             element={

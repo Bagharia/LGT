@@ -16,6 +16,8 @@ model User {
   lastName  String?
   role        Role     @default(USER)
   accountType String   @default("personal") // "personal" ou "pro"
+  resetPasswordToken   String?   // Token de réinitialisation de mot de passe
+  resetPasswordExpires DateTime? // Expiration du token
   createdAt   DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -12,6 +12,16 @@ const Profile = () => {
   });
   const [loading, setLoading] = useState(true);
 
+  // Changement de mot de passe
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+
   useEffect(() => {
     loadUserData();
   }, []);
@@ -38,6 +48,35 @@ const Profile = () => {
     } catch (error) {
       console.error('Erreur:', error);
       setLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('Les nouveaux mots de passe ne correspondent pas');
+      return;
+    }
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordError('Le nouveau mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      await authAPI.changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
+      setPasswordSuccess('Mot de passe modifié avec succès !');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      setPasswordError(error.response?.data?.error || 'Erreur lors du changement de mot de passe');
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -77,7 +116,6 @@ const Profile = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          {/* Designs */}
           <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-6 hover:border-blue-500/30 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
@@ -91,7 +129,6 @@ const Profile = () => {
             <p className="text-text-muted text-sm">Designs créés</p>
           </div>
 
-          {/* Orders */}
           <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-6 hover:border-purple-500/30 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
@@ -105,7 +142,6 @@ const Profile = () => {
             <p className="text-text-muted text-sm">Commandes passées</p>
           </div>
 
-          {/* Total Spent */}
           <div className="bg-[#0D2137] rounded-2xl border border-white/10 p-6 hover:border-accent/30 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
@@ -121,7 +157,7 @@ const Profile = () => {
         </div>
 
         {/* Account Info */}
-        <div className="bg-[#0D2137] rounded-2xl border border-white/10 overflow-hidden mb-12">
+        <div className="bg-[#0D2137] rounded-2xl border border-white/10 overflow-hidden mb-8">
           <div className="p-6 border-b border-white/10">
             <h2 className="font-space-grotesk text-2xl font-bold text-white">Informations du compte</h2>
           </div>
@@ -171,6 +207,94 @@ const Profile = () => {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Change Password */}
+        <div className="bg-[#0D2137] rounded-2xl border border-white/10 overflow-hidden mb-12">
+          <div className="p-6 border-b border-white/10">
+            <h2 className="font-space-grotesk text-2xl font-bold text-white">Modifier le mot de passe</h2>
+          </div>
+          <div className="p-6">
+            {passwordError && (
+              <div className="mb-5 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                {passwordError}
+              </div>
+            )}
+            {passwordSuccess && (
+              <div className="mb-5 p-4 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 text-sm">
+                {passwordSuccess}
+              </div>
+            )}
+            <form onSubmit={handlePasswordChange} className="space-y-5">
+              <div>
+                <label className="text-sm font-medium text-text-muted block mb-2">
+                  Mot de passe actuel <span className="text-accent">*</span>
+                </label>
+                <input
+                  type="password"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                  required
+                  placeholder="••••••••"
+                  disabled={passwordLoading}
+                  className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-text-muted focus:outline-none focus:border-accent transition-colors"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="text-sm font-medium text-text-muted block mb-2">
+                    Nouveau mot de passe <span className="text-accent">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    required
+                    placeholder="••••••••"
+                    minLength={6}
+                    disabled={passwordLoading}
+                    className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-text-muted focus:outline-none focus:border-accent transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-text-muted block mb-2">
+                    Confirmer le nouveau mot de passe <span className="text-accent">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    required
+                    placeholder="••••••••"
+                    minLength={6}
+                    disabled={passwordLoading}
+                    className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-text-muted focus:outline-none focus:border-accent transition-colors"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={passwordLoading}
+                  className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {passwordLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-primary border-t-transparent"></div>
+                      Modification...
+                    </>
+                  ) : (
+                    <>
+                      Modifier le mot de passe
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 

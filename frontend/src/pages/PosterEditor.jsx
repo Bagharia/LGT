@@ -238,6 +238,14 @@ const PosterEditor = () => {
     }));
   };
 
+  const handleQuantityInput = (format, value) => {
+    const num = parseInt(value) || 0;
+    setQuantities(prev => ({
+      ...prev,
+      [format]: Math.max(0, num),
+    }));
+  };
+
   const totalArticles = Object.values(quantities).reduce((sum, q) => sum + q, 0);
   const pricePerItem = product?.basePrice || 0.01;
   const totalPrice = totalArticles * pricePerItem;
@@ -549,7 +557,13 @@ const PosterEditor = () => {
                       >
                         −
                       </button>
-                      <span className="w-8 text-center text-white font-medium">{quantities[key]}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={quantities[key]}
+                        onChange={(e) => handleQuantityInput(key, e.target.value)}
+                        className="w-14 text-center text-white font-medium bg-white/5 border border-white/10 rounded-lg px-2 py-1 focus:outline-none focus:border-accent/50"
+                      />
                       <button
                         onClick={() => updateQuantity(key, 1)}
                         className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-text-muted hover:text-white hover:bg-white/10 transition-colors"
@@ -596,6 +610,20 @@ const PosterEditor = () => {
                       ? `${totalArticles} articles`
                       : `${totalArticles}/${proMinArticles} articles (min. ${proMinArticles})`
                     }
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Acompte alert for 30+ articles */}
+            {totalArticles >= 30 && (
+              <div className="p-3 rounded-lg border bg-blue-500/10 border-blue-500/30">
+                <div className="flex items-start gap-2">
+                  <svg className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm text-blue-300">
+                    Pour les commandes de 30 articles et plus, un acompte sera demandé à la validation.
                   </span>
                 </div>
               </div>

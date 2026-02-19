@@ -1,8 +1,11 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { PrismaClient } = require('@prisma/client');
+const { Resend } = require('resend');
 
 const prisma = new PrismaClient();
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Générer un token JWT
 const generateToken = (userId, email, role) => {
@@ -173,8 +176,136 @@ exports.getMe = async (req, res) => {
 
   } catch (error) {
     console.error('Erreur lors de la récupération du profil:', error);
-    res.status(500).json({ 
-      error: 'Erreur lors de la récupération du profil' 
+    res.status(500).json({
+      error: 'Erreur lors de la récupération du profil'
     });
+  }
+};
+
+// @route   POST /api/auth/change-password
+// @desc    Modifier le mot de passe (utilisateur connecté)
+// @access  Private
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Champs requis manquants' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Le nouveau mot de passe doit contenir au moins 6 caractères' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
+    if (!user) return res.status(404).json({ error: 'Utilisateur non trouvé' });
+
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) return res.status(401).json({ error: 'Mot de passe actuel incorrect' });
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { id: req.user.userId }, data: { password: hashed } });
+
+    res.json({ message: 'Mot de passe modifié avec succès' });
+  } catch (error) {
+    console.error('Erreur changePassword:', error);
+    res.status(500).json({ error: 'Erreur lors du changement de mot de passe' });
+  }
+};
+
+// @route   POST /api/auth/forgot-password
+// @desc    Envoyer un email de réinitialisation
+// @access  Public
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email requis' });
+
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // On renvoie toujours la même réponse pour ne pas révéler si l'email existe
+    if (!user) {
+      return res.json({ message: 'Si cet email existe, un lien de réinitialisation a été envoyé.' });
+    }
+
+    // Générer un token sécurisé
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 heure
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { resetPasswordToken: token, resetPasswordExpires: expires }
+    });
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+    await resend.emails.send({
+      from: 'LGT Imprimerie <noreply@lgt-imprimerie.com>',
+      to: user.email,
+      subject: 'Réinitialisation de votre mot de passe',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0A1931; color: #fff; padding: 40px; border-radius: 12px;">
+          <h1 style="color: #0EA5E9; font-size: 28px; margin-bottom: 8px;">LGT<span style="color: #0EA5E9;">.</span></h1>
+          <h2 style="color: #fff; margin-bottom: 24px;">Réinitialisation de mot de passe</h2>
+          <p style="color: #94a3b8; margin-bottom: 24px;">
+            Vous avez demandé à réinitialiser votre mot de passe. Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.
+          </p>
+          <a href="${resetUrl}" style="display: inline-block; background: #0EA5E9; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-bottom: 24px;">
+            Réinitialiser mon mot de passe
+          </a>
+          <p style="color: #64748b; font-size: 13px;">
+            Ce lien expire dans 1 heure. Si vous n'avez pas fait cette demande, ignorez cet email.
+          </p>
+        </div>
+      `,
+    });
+
+    res.json({ message: 'Si cet email existe, un lien de réinitialisation a été envoyé.' });
+  } catch (error) {
+    console.error('Erreur forgotPassword:', error);
+    res.status(500).json({ error: 'Erreur lors de l\'envoi de l\'email' });
+  }
+};
+
+// @route   POST /api/auth/reset-password
+// @desc    Réinitialiser le mot de passe avec le token
+// @access  Public
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token et nouveau mot de passe requis' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères' });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: { gt: new Date() }
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Lien invalide ou expiré. Faites une nouvelle demande.' });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashed,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      }
+    });
+
+    res.json({ message: 'Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter.' });
+  } catch (error) {
+    console.error('Erreur resetPassword:', error);
+    res.status(500).json({ error: 'Erreur lors de la réinitialisation' });
   }
 };

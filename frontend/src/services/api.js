@@ -84,6 +84,24 @@ export const authAPI = {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   },
+
+  // Modifier le mot de passe (connecté)
+  changePassword: async (data) => {
+    const response = await api.post('/auth/change-password', data);
+    return response.data;
+  },
+
+  // Mot de passe oublié - envoyer l'email
+  forgotPassword: async (email) => {
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  // Réinitialiser le mot de passe avec le token
+  resetPassword: async (token, newPassword) => {
+    const response = await api.post('/auth/reset-password', { token, newPassword });
+    return response.data;
+  },
 };
 
 // ==================== CATEGORIES ====================

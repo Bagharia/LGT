@@ -110,12 +110,19 @@ const Login = () => {
           </form>
 
           {/* Footer */}
-          <p className="mt-8 text-center text-text-muted">
-            Pas encore de compte ?{' '}
-            <Link to="/register" className="text-accent hover:underline font-medium">
-              Créer un compte
-            </Link>
-          </p>
+          <div className="mt-8 space-y-3 text-center">
+            <p className="text-text-muted">
+              <Link to="/forgot-password" className="text-accent hover:underline font-medium">
+                Mot de passe oublié ?
+              </Link>
+            </p>
+            <p className="text-text-muted">
+              Pas encore de compte ?{' '}
+              <Link to="/register" className="text-accent hover:underline font-medium">
+                Créer un compte
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
 
