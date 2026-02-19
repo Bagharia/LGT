@@ -14,6 +14,8 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import MyDesigns from './pages/MyDesigns';
 import PaymentSuccess from './pages/PaymentSuccess';
+import CGV from './pages/CGV';
+import MentionsLegales from './pages/MentionsLegales';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -56,7 +58,7 @@ function AppContent() {
   const isProductDetailRoute = location.pathname.startsWith('/product/');
 
   // Pages with new THREAD design (have their own layout)
-  const fullPageRoutes = ['/', '/products', '/login', '/register', '/forgot-password', '/reset-password', '/my-designs', '/my-orders', '/checkout', '/payment-success', '/profile', '/admin', '/admin/orders', '/admin/products', '/admin/categories'];
+  const fullPageRoutes = ['/', '/products', '/login', '/register', '/forgot-password', '/reset-password', '/my-designs', '/my-orders', '/checkout', '/payment-success', '/profile', '/admin', '/admin/orders', '/admin/products', '/admin/categories', '/cgv', '/mentions-legales'];
   const isFullPageRoute = fullPageRoutes.includes(location.pathname) || isProductDetailRoute;
 
   return (
@@ -105,6 +107,8 @@ function AppContent() {
           />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/cgv" element={<CGV />} />
+          <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route
             path="/my-designs"
             element={

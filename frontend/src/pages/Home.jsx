@@ -310,7 +310,10 @@ const Home = () => {
         </div>
         <div className="footer-bottom">
           <p>&copy; 2026 LGT. Tous droits réservés.</p>
-          <p>Conçu avec passion en France</p>
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Link to="/cgv" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.7 }}>CGV</Link>
+            <Link to="/mentions-legales" style={{ color: 'inherit', textDecoration: 'underline', opacity: 0.7 }}>Mentions légales</Link>
+          </div>
         </div>
       </footer>
     </div>
