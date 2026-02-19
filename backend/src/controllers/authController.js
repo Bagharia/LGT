@@ -5,7 +5,8 @@ const { PrismaClient } = require('@prisma/client');
 const { Resend } = require('resend');
 
 const prisma = new PrismaClient();
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Instancié à la demande pour éviter un crash au démarrage si la clé est vide
+const getResend = () => new Resend(process.env.RESEND_API_KEY);
 
 // Générer un token JWT
 const generateToken = (userId, email, role) => {
@@ -239,7 +240,7 @@ exports.forgotPassword = async (req, res) => {
 
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: 'LGT Imprimerie <noreply@lgt-imprimerie.com>',
       to: user.email,
       subject: 'Réinitialisation de votre mot de passe',
