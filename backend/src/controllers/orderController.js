@@ -1,5 +1,19 @@
 const { PrismaClient } = require('@prisma/client');
+const { Resend } = require('resend');
+
 const prisma = new PrismaClient();
+const getResend = () => new Resend(process.env.RESEND_API_KEY);
+
+const ADMIN_EMAIL = 'lgtimprimerie@gmail.com';
+
+const STATUS_LABELS = {
+  PENDING: 'En attente',
+  PAID: 'Payée',
+  PROCESSING: 'En cours de traitement',
+  SHIPPED: 'Expédiée',
+  DELIVERED: 'Livrée',
+  CANCELLED: 'Annulée'
+};
 
 // @desc    Créer une nouvelle commande
 // @route   POST /api/orders
@@ -103,6 +117,36 @@ exports.createOrder = async (req, res) => {
     });
 
     console.log('✅ Commande créée avec succès, ID:', order.id);
+
+    // Email alerte admin
+    try {
+      const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, firstName: true, lastName: true } });
+      const totalArticles = completeOrder.orderDesigns.reduce((sum, od) => {
+        return sum + Object.values(od.quantities || {}).reduce((s, q) => s + q, 0);
+      }, 0);
+      await getResend().emails.send({
+        from: 'LGT Imprimerie <noreply@lgt-imprimerie.com>',
+        to: ADMIN_EMAIL,
+        subject: `🛒 Nouvelle commande #${order.id}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0A1931; color: #fff; padding: 40px; border-radius: 12px;">
+            <h1 style="color: #0EA5E9; margin-bottom: 4px;">LGT<span style="color: #0EA5E9;">.</span></h1>
+            <h2 style="color: #fff; margin-bottom: 24px;">Nouvelle commande reçue</h2>
+            <div style="background: #0D2137; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+              <p style="color: #94a3b8; margin: 0 0 8px;"><strong style="color:#fff;">Commande #:</strong> ${order.id}</p>
+              <p style="color: #94a3b8; margin: 0 0 8px;"><strong style="color:#fff;">Client :</strong> ${user?.firstName || ''} ${user?.lastName || ''} (${user?.email})</p>
+              <p style="color: #94a3b8; margin: 0 0 8px;"><strong style="color:#fff;">Articles :</strong> ${totalArticles}</p>
+              <p style="color: #94a3b8; margin: 0;"><strong style="color:#fff;">Total :</strong> ${totalPrice} €</p>
+            </div>
+            <a href="https://lgt-imprimerie.com/admin/orders" style="display: inline-block; background: #0EA5E9; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+              Voir la commande
+            </a>
+          </div>
+        `,
+      });
+    } catch (emailErr) {
+      console.error('⚠️ Erreur email admin:', emailErr.message);
+    }
 
     res.status(201).json({
       message: 'Commande créée avec succès',
@@ -316,6 +360,7 @@ exports.updateOrderStatus = async (req, res) => {
       where: { id: orderId },
       data: { status: upperStatus },
       include: {
+        user: { select: { email: true, firstName: true } },
         orderDesigns: {
           include: {
             design: {
@@ -327,6 +372,35 @@ exports.updateOrderStatus = async (req, res) => {
         }
       }
     });
+
+    // Email au client pour le changement de statut
+    try {
+      const statusLabel = STATUS_LABELS[upperStatus] || upperStatus;
+      const statusColor = upperStatus === 'SHIPPED' ? '#22c55e' : upperStatus === 'DELIVERED' ? '#0EA5E9' : upperStatus === 'CANCELLED' ? '#ef4444' : '#f59e0b';
+      await getResend().emails.send({
+        from: 'LGT Imprimerie <noreply@lgt-imprimerie.com>',
+        to: order.user.email,
+        subject: `Commande #${orderId} — ${statusLabel}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0A1931; color: #fff; padding: 40px; border-radius: 12px;">
+            <h1 style="color: #0EA5E9; margin-bottom: 4px;">LGT<span style="color: #0EA5E9;">.</span></h1>
+            <h2 style="color: #fff; margin-bottom: 24px;">Mise à jour de votre commande</h2>
+            <p style="color: #94a3b8; margin-bottom: 20px;">Bonjour ${order.user.firstName || ''},</p>
+            <div style="background: #0D2137; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+              <p style="color: #94a3b8; margin: 0 0 8px;"><strong style="color:#fff;">Commande #:</strong> ${orderId}</p>
+              <p style="color: #94a3b8; margin: 0;"><strong style="color:#fff;">Nouveau statut :</strong> <span style="color: ${statusColor}; font-weight: bold;">${statusLabel}</span></p>
+            </div>
+            ${upperStatus === 'SHIPPED' ? `<p style="color: #94a3b8; margin-bottom: 20px;">Votre commande est en route ! Vous la recevrez très prochainement.</p>` : ''}
+            ${upperStatus === 'DELIVERED' ? `<p style="color: #94a3b8; margin-bottom: 20px;">Votre commande a été livrée. Merci pour votre confiance !</p>` : ''}
+            <a href="https://lgt-imprimerie.com/my-orders" style="display: inline-block; background: #0EA5E9; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+              Voir mes commandes
+            </a>
+          </div>
+        `,
+      });
+    } catch (emailErr) {
+      console.error('⚠️ Erreur email statut client:', emailErr.message);
+    }
 
     res.json({
       message: 'Statut de la commande mis à jour',
