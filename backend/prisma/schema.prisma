@@ -58,6 +58,7 @@ model Product {
   description  String?
   basePrice    Float
   isActive     Boolean  @default(true)
+  isFeatured   Boolean  @default(false)
   displayOrder Int      @default(0)
   categoryId   Int?
   createdAt    DateTime @default(now())

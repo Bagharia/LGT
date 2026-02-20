@@ -182,6 +182,18 @@ export const productsAPI = {
     const response = await api.put('/products/reorder', { items });
     return response.data;
   },
+
+  // Récupérer les produits vedette (homepage)
+  getFeatured: async () => {
+    const response = await api.get('/products/featured');
+    return response.data;
+  },
+
+  // Basculer le statut vedette d'un produit (admin)
+  toggleFeatured: async (id) => {
+    const response = await api.patch(`/products/${id}/featured`);
+    return response.data;
+  },
 };
 
 // ==================== DESIGNS ====================

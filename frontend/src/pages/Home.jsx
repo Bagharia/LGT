@@ -43,8 +43,14 @@ const Home = () => {
 
   const loadProducts = async () => {
     try {
-      const data = await productsAPI.getAll();
-      setProducts(data.products.slice(0, 5));
+      const data = await productsAPI.getFeatured();
+      // Fallback : si aucun produit vedette, afficher les 5 premiers
+      if (data.products.length === 0) {
+        const all = await productsAPI.getAll();
+        setProducts(all.products.slice(0, 5));
+      } else {
+        setProducts(data.products);
+      }
       setLoading(false);
     } catch (error) {
       console.error('Erreur lors du chargement des produits:', error);

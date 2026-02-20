@@ -5,6 +5,7 @@ const { authMiddleware, adminMiddleware } = require('../middlewares/authMiddlewa
 
 // Routes publiques
 router.get('/', productController.getAllProducts);
+router.get('/featured', productController.getFeaturedProducts);
 
 // Routes admin (AVANT /:id pour éviter le conflit Express)
 router.get('/admin/all', authMiddleware, adminMiddleware, productController.getAllProductsAdmin);
@@ -17,5 +18,6 @@ router.get('/:id', productController.getProductById);
 router.post('/', authMiddleware, adminMiddleware, productController.createProduct);
 router.put('/:id', authMiddleware, adminMiddleware, productController.updateProduct);
 router.delete('/:id', authMiddleware, adminMiddleware, productController.deleteProduct);
+router.patch('/:id/featured', authMiddleware, adminMiddleware, productController.toggleFeatured);
 
 module.exports = router;

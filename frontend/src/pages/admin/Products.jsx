@@ -101,6 +101,17 @@ const AdminProducts = () => {
     }
   };
 
+  const handleToggleFeatured = async (id, currentState) => {
+    try {
+      await productsAPI.toggleFeatured(id);
+      setProducts(prev => prev.map(p => p.id === id ? { ...p, isFeatured: !currentState } : p));
+      toast.success(currentState ? 'Retiré de la page d\'accueil' : 'Ajouté à la page d\'accueil');
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
+
   const moveProduct = async (index, direction) => {
     const filtered = filteredProducts;
     const swapIndex = index + direction;
@@ -261,6 +272,15 @@ const AdminProducts = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
                   )}
+                  {/* Badge vedette */}
+                  {product.isFeatured && (
+                    <div className="absolute top-2 left-2">
+                      <span className="px-2 py-1 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                        ★ Vedette
+                      </span>
+                    </div>
+                  )}
+
                   {/* Reorder buttons */}
                   <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
@@ -320,6 +340,17 @@ const AdminProducts = () => {
                   </div>
 
                   <div className="flex gap-2">
+                    <button
+                      onClick={() => handleToggleFeatured(product.id, product.isFeatured)}
+                      title={product.isFeatured ? 'Retirer de l\'accueil' : 'Mettre en vedette sur l\'accueil'}
+                      className={`px-3 py-2.5 rounded-xl border transition-colors text-sm font-medium ${
+                        product.isFeatured
+                          ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/30'
+                          : 'bg-white/5 text-text-muted border-white/10 hover:text-yellow-400 hover:border-yellow-500/30'
+                      }`}
+                    >
+                      ★
+                    </button>
                     <button
                       onClick={() => handleEdit(product)}
                       className="flex-1 px-4 py-2.5 bg-accent text-primary rounded-xl font-medium text-sm hover:bg-accent/90 transition-colors"

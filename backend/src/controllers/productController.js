@@ -214,6 +214,47 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
+// @route   GET /api/products/featured
+// @desc    Récupérer les produits vedette (homepage)
+// @access  Public
+exports.getFeaturedProducts = async (req, res) => {
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true, isFeatured: true },
+      orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
+      include: { category: true }
+    });
+
+    res.json({ products });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des produits vedette:', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération des produits vedette' });
+  }
+};
+
+// @route   PATCH /api/products/:id/featured
+// @desc    Basculer le statut vedette d'un produit (Admin)
+// @access  Private/Admin
+exports.toggleFeatured = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const existing = await prisma.product.findUnique({ where: { id: parseInt(id) } });
+    if (!existing) return res.status(404).json({ error: 'Produit non trouvé' });
+
+    const product = await prisma.product.update({
+      where: { id: parseInt(id) },
+      data: { isFeatured: !existing.isFeatured },
+      include: { category: true }
+    });
+
+    res.json({ message: 'Statut vedette mis à jour', product });
+  } catch (error) {
+    console.error('Erreur toggleFeatured:', error);
+    res.status(500).json({ error: 'Erreur lors de la mise à jour' });
+  }
+};
+
 // @route   GET /api/products/admin/all
 // @desc    Récupérer TOUS les produits (actifs et inactifs) (Admin seulement)
 // @access  Private/Admin
