@@ -28,8 +28,8 @@ const ResetPassword = () => {
       setError('Les mots de passe ne correspondent pas');
       return;
     }
-    if (form.newPassword.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
+    if (form.newPassword.length < 8) {
+      setError('Le mot de passe doit contenir au moins 8 caractères');
       return;
     }
 

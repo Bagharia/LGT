@@ -124,9 +124,8 @@ app.use((req, res) => {
 // Gestion globale des erreurs
 app.use((err, req, res, next) => {
   console.error('Erreur serveur:', err);
-  res.status(500).json({ 
-    error: 'Erreur interne du serveur',
-    message: err.message 
+  res.status(500).json({
+    error: 'Erreur interne du serveur'
   });
 });
 

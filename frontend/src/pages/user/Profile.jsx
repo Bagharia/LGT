@@ -62,8 +62,8 @@ const Profile = () => {
       setPasswordError('Les nouveaux mots de passe ne correspondent pas');
       return;
     }
-    if (passwordForm.newPassword.length < 6) {
-      setPasswordError('Le nouveau mot de passe doit contenir au moins 6 caractères');
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordError('Le nouveau mot de passe doit contenir au moins 8 caractères');
       return;
     }
 

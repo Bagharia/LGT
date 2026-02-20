@@ -42,10 +42,10 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Valider le mot de passe (minimum 6 caractères)
-    if (password.length < 6) {
-      return res.status(400).json({ 
-        error: 'Le mot de passe doit contenir au moins 6 caractères' 
+    // Valider le mot de passe (minimum 8 caractères)
+    if (password.length < 8) {
+      return res.status(400).json({
+        error: 'Le mot de passe doit contenir au moins 8 caractères'
       });
     }
 
@@ -194,8 +194,8 @@ exports.changePassword = async (req, res) => {
       return res.status(400).json({ error: 'Champs requis manquants' });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: 'Le nouveau mot de passe doit contenir au moins 6 caractères' });
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'Le nouveau mot de passe doit contenir au moins 8 caractères' });
     }
 
     const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
@@ -279,8 +279,8 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ error: 'Token et nouveau mot de passe requis' });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères' });
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 8 caractères' });
     }
 
     const user = await prisma.user.findFirst({
