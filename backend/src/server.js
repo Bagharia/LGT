@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const { PrismaClient } = require('@prisma/client');
 
@@ -11,6 +13,31 @@ const prisma = new PrismaClient();
 
 // Créer l'application Express
 const app = express();
+
+// Sécurité HTTP headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }, // Pour les images Cloudinary
+  contentSecurityPolicy: false, // Géré côté frontend (React)
+}));
+
+// Rate limiting global (toutes les routes)
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200,
+  message: { error: 'Trop de requêtes, réessayez dans 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api', globalLimiter);
+
+// Rate limiting strict pour les routes d'authentification
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 tentatives max
+  message: { error: 'Trop de tentatives, réessayez dans 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Middlewares
 const allowedOrigins = [
@@ -78,7 +105,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const stripeRoutes = require('./routes/stripeRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/designs', designRoutes);

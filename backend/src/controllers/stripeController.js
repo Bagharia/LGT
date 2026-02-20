@@ -94,11 +94,11 @@ exports.handleWebhook = async (req, res) => {
   let event;
 
   try {
-    if (endpointSecret) {
-      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-    } else {
-      event = req.body;
+    if (!endpointSecret) {
+      console.error('⚠️ STRIPE_WEBHOOK_SECRET non défini — webhook rejeté');
+      return res.status(400).send('Webhook Error: missing endpoint secret');
     }
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err) {
     console.error('Erreur webhook signature:', err.message);
     return res.status(400).send('Webhook Error: ' + err.message);
