@@ -166,7 +166,7 @@ const Checkout = () => {
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Name Row */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-text-muted mb-2">
                       Prénom <span className="text-accent">*</span>
@@ -236,7 +236,7 @@ const Checkout = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-text-muted mb-2">
                       Code postal <span className="text-accent">*</span>
