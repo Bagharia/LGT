@@ -3,8 +3,10 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { ordersAPI, stripeAPI } from '../services/api';
 import { useToast } from '../components/Toast';
 import Header from '../components/Header';
+import useSEO from '../hooks/useSEO';
 
 const Checkout = () => {
+  useSEO({ title: 'Paiement', path: '/checkout' });
   const navigate = useNavigate();
   const toast = useToast();
   const [searchParams] = useSearchParams();

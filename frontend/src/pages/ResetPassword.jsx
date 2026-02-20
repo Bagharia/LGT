@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import useSEO from '../hooks/useSEO';
 
 const ResetPassword = () => {
+  useSEO({ title: 'Réinitialiser le mot de passe', path: '/reset-password' });
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ordersAPI } from '../../services/api';
 import Header from '../../components/Header';
+import useSEO from '../../hooks/useSEO';
 
 const MyOrders = () => {
+  useSEO({ title: 'Mes commandes', path: '/my-orders' });
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import useSEO from '../hooks/useSEO';
 
 const Register = () => {
+  useSEO({ title: 'Créer un compte', path: '/register' });
   const [formData, setFormData] = useState({
     email: '',
     password: '',

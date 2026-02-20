@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { authAPI, designsAPI, ordersAPI } from '../../services/api';
 import Header from '../../components/Header';
+import useSEO from '../../hooks/useSEO';
 
 const Profile = () => {
+  useSEO({ title: 'Mon profil', path: '/profile' });
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
     totalDesigns: 0,

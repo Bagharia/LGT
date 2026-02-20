@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
+import useSEO from '../hooks/useSEO';
 
 const CGV = () => {
+  useSEO({ title: 'Conditions Générales de Vente', description: 'Consultez les conditions générales de vente de LGT Imprimerie : commandes, paiement, livraison, retours et garanties.', path: '/cgv' });
   return (
     <div className="bg-primary min-h-screen">
       <Header />

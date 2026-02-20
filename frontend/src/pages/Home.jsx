@@ -3,8 +3,14 @@ import { useState, useEffect } from 'react';
 import { productsAPI } from '../services/api';
 import HeroCanvas from '../components/3D/HeroCanvas';
 import Header from '../components/Header';
+import useSEO from '../hooks/useSEO';
 
 const Home = () => {
+  useSEO({
+    title: 'T-shirts & Affiches personnalisés',
+    description: "Créez des t-shirts et affiches personnalisés avec l'éditeur en ligne LGT Imprimerie. Design unique, qualité premium, livraison rapide en France.",
+    path: '/',
+  });
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loaderHidden, setLoaderHidden] = useState(false);

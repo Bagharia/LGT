@@ -4,6 +4,7 @@ import { productsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import Header from '../components/Header';
+import useSEO from '../hooks/useSEO';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const POSTER_FORMATS = ['A4', 'A3'];
@@ -15,6 +16,12 @@ const ProductDetail = () => {
   const { isAuthenticated } = useAuth();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  useSEO({
+    title: product ? product.name : 'Produit',
+    description: product ? `Personnalisez ${product.name} avec votre design unique. Qualité premium, livraison rapide en France.` : undefined,
+    path: `/product/${id}`,
+  });
   const [selectedImage, setSelectedImage] = useState('front');
   const [selectedSize, setSelectedSize] = useState('M');
   const [selectedFormat, setSelectedFormat] = useState('A4');

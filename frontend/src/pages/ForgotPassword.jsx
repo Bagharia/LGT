@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import useSEO from '../hooks/useSEO';
 
 const ForgotPassword = () => {
+  useSEO({ title: 'Mot de passe oublié', path: '/forgot-password' });
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);

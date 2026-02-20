@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { designsAPI, categoriesAPI } from '../services/api';
 import { useToast } from '../components/Toast';
 import Header from '../components/Header';
+import useSEO from '../hooks/useSEO';
 
 const MyDesigns = () => {
+  useSEO({ title: 'Mes designs', path: '/my-designs' });
   const toast = useToast();
   const [designs, setDesigns] = useState([]);
   const [loading, setLoading] = useState(true);

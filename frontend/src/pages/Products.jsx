@@ -2,8 +2,14 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { categoriesAPI } from '../services/api';
 import Header from '../components/Header';
+import useSEO from '../hooks/useSEO';
 
 const Products = () => {
+  useSEO({
+    title: 'Nos produits',
+    description: 'Découvrez notre catalogue de t-shirts et affiches à personnaliser. Choisissez votre produit et créez votre design unique en quelques clics.',
+    path: '/products',
+  });
   const [searchParams] = useSearchParams();
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);

@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
+import useSEO from '../hooks/useSEO';
 
 const MentionsLegales = () => {
+  useSEO({ title: 'Mentions Légales', description: 'Mentions légales de LGT Imprimerie : éditeur, hébergement, données personnelles (RGPD) et propriété intellectuelle.', path: '/mentions-legales' });
   return (
     <div className="bg-primary min-h-screen">
       <Header />

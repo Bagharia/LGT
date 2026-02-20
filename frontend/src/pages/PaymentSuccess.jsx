@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { stripeAPI } from '../services/api';
 import Header from '../components/Header';
+import useSEO from '../hooks/useSEO';
 
 const PaymentSuccess = () => {
+  useSEO({ title: 'Commande confirmée', path: '/payment-success' });
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const orderId = searchParams.get('order_id');
