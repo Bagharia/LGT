@@ -83,8 +83,8 @@ const Home = () => {
             <span className="accent">Style</span> Unique
           </h1>
           <p>
-            T-shirts personnalisés premium pour ceux qui osent se démarquer.
-            Design intuitif, qualité exceptionnelle, expression sans limites.
+            T-shirts, affiches, posters… Tout ce que tu imagines, on l'imprime.
+            Crée en quelques clics un objet unique qui te ressemble vraiment.
           </p>
           <div className="hero-buttons">
             <Link to="/products" className="btn-primary">
