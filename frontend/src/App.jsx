@@ -17,6 +17,7 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import CGV from './pages/CGV';
 import MentionsLegales from './pages/MentionsLegales';
 import TrackOrder from './pages/TrackOrder';
+import NotFound from './pages/NotFound';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -184,8 +185,13 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
+          <Route path="*" element={<NotFound />} />
         </Routes>
-      ) : null}
+      ) : (
+        <Routes>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      )}
     </>
   );
 }

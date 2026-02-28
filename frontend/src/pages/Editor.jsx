@@ -22,8 +22,11 @@ const Editor = () => {
   const [tshirtColor, setTshirtColor] = useState('#FFFFFF');
   const [designLoaded, setDesignLoaded] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewDataUrl, setPreviewDataUrl] = useState(null);
 
   const isTwoSided = product?.category?.hasTwoSides ?? true;
+  const activeCanvas = activeSide === 'front' || !isTwoSided ? frontCanvas : backCanvas;
 
   // Ajouter du texte automatiquement quand on clique sur le bouton Texte
   const handleTextClick = () => {
@@ -50,11 +53,11 @@ const Editor = () => {
     fetchProduct();
   }, [productId]);
 
-  // Raccourcis clavier Ctrl+Z / Ctrl+Y
+  // Raccourcis clavier Ctrl+Z / Ctrl+Y / Delete
   useEffect(() => {
     const handleKeyDown = (e) => {
+      const canvas = activeSide === 'front' || !isTwoSided ? frontCanvas : backCanvas;
       if (e.ctrlKey || e.metaKey) {
-        const canvas = activeSide === 'front' ? frontCanvas : (isTwoSided ? backCanvas : frontCanvas);
         if (e.key === 'z') {
           e.preventDefault();
           canvas?.undo();
@@ -62,11 +65,28 @@ const Editor = () => {
           e.preventDefault();
           canvas?.redo();
         }
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+        const obj = canvas?.getActiveObject();
+        if (obj) {
+          e.preventDefault();
+          canvas.remove(obj);
+          canvas.discardActiveObject();
+          canvas.renderAll();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeSide, frontCanvas, backCanvas, isTwoSided]);
+
+  // Générer le PNG d'aperçu quand le modal s'ouvre
+  useEffect(() => {
+    if (showPreview && activeCanvas) {
+      const dataUrl = activeCanvas.toDataURL({ format: 'png', multiplier: 2 });
+      setPreviewDataUrl(dataUrl);
+    }
+  }, [showPreview, activeCanvas]);
 
   // Charger le design si un designId est fourni dans l'URL
   useEffect(() => {
@@ -386,6 +406,17 @@ const Editor = () => {
             </svg>
             <span>Grille</span>
           </button>
+          <button
+            className="toggle-btn"
+            onClick={() => setShowPreview(true)}
+            title="Aperçu full-screen"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span>Aperçu</span>
+          </button>
 
           <div className="flex-1"></div>
 
@@ -494,6 +525,48 @@ const Editor = () => {
           />
         </div>
       </div>
+
+      {/* Modal Aperçu full-screen */}
+      {showPreview && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-8"
+          onClick={() => setShowPreview(false)}
+        >
+          <div
+            className="relative w-full max-w-lg"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-white font-medium">
+                {activeSide === 'front' ? 'Devant' : 'Dos'} — {product?.name}
+              </span>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="text-white/60 hover:text-white transition-colors flex items-center gap-2 text-sm"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Fermer
+              </button>
+            </div>
+            {/* Image */}
+            {previewDataUrl ? (
+              <img
+                src={previewDataUrl}
+                alt="Aperçu du design"
+                className="w-full rounded-2xl shadow-2xl border border-white/10"
+              />
+            ) : (
+              <div className="w-full aspect-[5/6] bg-white/5 rounded-2xl flex items-center justify-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-2 border-accent border-t-transparent" />
+              </div>
+            )}
+            <p className="text-center text-white/40 text-sm mt-4">Cliquez en dehors pour fermer</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

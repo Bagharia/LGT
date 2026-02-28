@@ -14,6 +14,7 @@ const Products = () => {
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadCategories();
@@ -43,6 +44,12 @@ const Products = () => {
 
   const activeCategoryData = categories.find(c => c.id === activeCategory);
   const visibleProducts = activeCategoryData?.products || [];
+  const filteredProducts = searchTerm.trim()
+    ? visibleProducts.filter(p =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.description || '').toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : visibleProducts;
 
   return (
     <div className="min-h-screen bg-primary">
@@ -64,24 +71,51 @@ const Products = () => {
         </div>
       </section>
 
-      {/* Category Tabs */}
-      {!loading && categories.length > 1 && (
-        <section className="px-8 md:px-16 pb-8">
-          <div className="flex gap-3 flex-wrap">
-            {categories.map(cat => (
+      {/* Search + Category Tabs */}
+      {!loading && (
+        <section className="px-8 md:px-16 pb-8 space-y-5">
+          {/* Barre de recherche */}
+          <div className="relative max-w-md">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Rechercher un produit..."
+              className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-text-muted focus:outline-none focus:border-accent/50 transition-colors"
+            />
+            {searchTerm && (
               <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
-                  activeCategory === cat.id
-                    ? 'bg-accent text-primary shadow-lg shadow-accent/30'
-                    : 'bg-white/5 text-text-muted hover:text-white hover:bg-white/10 border border-white/10'
-                }`}
+                onClick={() => setSearchTerm('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-white transition-colors"
               >
-                {cat.name}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
-            ))}
+            )}
           </div>
+
+          {/* Onglets catégorie */}
+          {categories.length > 1 && (
+            <div className="flex gap-3 flex-wrap">
+              {categories.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => { setActiveCategory(cat.id); setSearchTerm(''); }}
+                  className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+                    activeCategory === cat.id
+                      ? 'bg-accent text-primary shadow-lg shadow-accent/30'
+                      : 'bg-white/5 text-text-muted hover:text-white hover:bg-white/10 border border-white/10'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -91,9 +125,9 @@ const Products = () => {
           <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-2 border-accent border-t-transparent"></div>
           </div>
-        ) : visibleProducts.length > 0 ? (
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {visibleProducts.map((product, index) => (
+            {filteredProducts.map((product, index) => (
               <div
                 key={product.id}
                 className="product-card group"
@@ -147,12 +181,28 @@ const Products = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
             </div>
-            <h3 className="font-space-grotesk text-2xl font-bold text-white mb-3">
-              Aucun produit disponible
-            </h3>
-            <p className="text-text-muted">
-              Revenez bientôt pour découvrir notre nouvelle collection.
-            </p>
+            {searchTerm ? (
+              <>
+                <h3 className="font-space-grotesk text-2xl font-bold text-white mb-3">
+                  Aucun résultat
+                </h3>
+                <p className="text-text-muted mb-6">
+                  Aucun produit ne correspond à "{searchTerm}".
+                </p>
+                <button onClick={() => setSearchTerm('')} className="btn-primary">
+                  Effacer la recherche
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="font-space-grotesk text-2xl font-bold text-white mb-3">
+                  Aucun produit disponible
+                </h3>
+                <p className="text-text-muted">
+                  Revenez bientôt pour découvrir notre nouvelle collection.
+                </p>
+              </>
+            )}
           </div>
         )}
       </section>
