@@ -50,6 +50,24 @@ const Editor = () => {
     fetchProduct();
   }, [productId]);
 
+  // Raccourcis clavier Ctrl+Z / Ctrl+Y
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        const canvas = activeSide === 'front' ? frontCanvas : (isTwoSided ? backCanvas : frontCanvas);
+        if (e.key === 'z') {
+          e.preventDefault();
+          canvas?.undo();
+        } else if (e.key === 'y') {
+          e.preventDefault();
+          canvas?.redo();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeSide, frontCanvas, backCanvas, isTwoSided]);
+
   // Charger le design si un designId est fourni dans l'URL
   useEffect(() => {
     const designId = searchParams.get('designId');
@@ -371,13 +389,27 @@ const Editor = () => {
 
           <div className="flex-1"></div>
 
-          <button className="toggle-btn">
+          <button
+            className="toggle-btn"
+            onClick={() => {
+              const canvas = activeSide === 'front' ? frontCanvas : (isTwoSided ? backCanvas : frontCanvas);
+              canvas?.undo();
+            }}
+            title="Annuler (Ctrl+Z)"
+          >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
             </svg>
             <span>Retour</span>
           </button>
-          <button className="toggle-btn">
+          <button
+            className="toggle-btn"
+            onClick={() => {
+              const canvas = activeSide === 'front' ? frontCanvas : (isTwoSided ? backCanvas : frontCanvas);
+              canvas?.redo();
+            }}
+            title="Rétablir (Ctrl+Y)"
+          >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" />
             </svg>

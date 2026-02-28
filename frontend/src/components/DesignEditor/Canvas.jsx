@@ -27,6 +27,11 @@ const DesignCanvas = ({ side, onCanvasReady, tshirtColor, showGrid = true, snapT
   const fabricCanvasRef = useRef(null);
   const [mousePos, setMousePos] = useState({ cmX: '0.0', cmY: '0.0' });
 
+  // Historique undo/redo
+  const historyStack = useRef([]);
+  const historyIndex = useRef(-1);
+  const isUndoRedo = useRef(false); // évite d'enregistrer lors d'un undo/redo
+
   // Throttle pour limiter les mises à jour
   const lastUpdate = useRef(0);
   const throttledSetMousePos = useCallback((pos) => {
@@ -128,6 +133,62 @@ const DesignCanvas = ({ side, onCanvasReady, tshirtColor, showGrid = true, snapT
     // Ajouter infos au canvas
     canvas.printAreaBounds = PRINT_AREA;
     canvas.PX_PER_CM = PX_PER_CM;
+
+    // --- Historique undo/redo ---
+    const saveSnapshot = () => {
+      if (isUndoRedo.current) return;
+      const json = JSON.stringify(canvas.toJSON());
+      // Supprimer les états "futurs" si on fait une nouvelle action après undo
+      historyStack.current = historyStack.current.slice(0, historyIndex.current + 1);
+      historyStack.current.push(json);
+      historyIndex.current = historyStack.current.length - 1;
+    };
+
+    const restoreSnapshot = async (json) => {
+      isUndoRedo.current = true;
+      const data = JSON.parse(json);
+      // Garder uniquement le printArea (1er objet), recharger les autres
+      const printAreaData = canvas.getObjects()[0];
+      canvas.clear();
+      canvas.add(printAreaData);
+
+      for (const objData of data.objects.slice(1)) {
+        if (objData.type === 'i-text' || objData.type === 'text' || objData.type === 'IText') {
+          const { type, ...textProps } = objData;
+          const text = new fabric.IText(objData.text || '', textProps);
+          canvas.add(text);
+        } else if (objData.type === 'image' || objData.type === 'Image') {
+          try {
+            const img = await fabric.FabricImage.fromObject(objData);
+            canvas.add(img);
+          } catch (e) { /* ignore */ }
+        }
+      }
+      canvas.renderAll();
+      isUndoRedo.current = false;
+    };
+
+    canvas.undo = async () => {
+      if (historyIndex.current > 0) {
+        historyIndex.current--;
+        await restoreSnapshot(historyStack.current[historyIndex.current]);
+      }
+    };
+
+    canvas.redo = async () => {
+      if (historyIndex.current < historyStack.current.length - 1) {
+        historyIndex.current++;
+        await restoreSnapshot(historyStack.current[historyIndex.current]);
+      }
+    };
+
+    // Enregistrer un snapshot après chaque action
+    canvas.on('object:added', saveSnapshot);
+    canvas.on('object:removed', saveSnapshot);
+    canvas.on('object:modified', saveSnapshot);
+
+    // Snapshot initial (canvas avec juste le printArea)
+    setTimeout(() => saveSnapshot(), 50);
 
     if (onCanvasReady) {
       onCanvasReady(canvas);
