@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
+const reviewController = require('../controllers/reviewController');
 const { authMiddleware, adminMiddleware } = require('../middlewares/authMiddleware');
 
 // Routes publiques
@@ -13,6 +14,11 @@ router.put('/reorder', authMiddleware, adminMiddleware, productController.reorde
 
 // Route publique par ID
 router.get('/:id', productController.getProductById);
+
+// Routes Reviews (sous-ressource de produit)
+router.get('/:productId/reviews', reviewController.getProductReviews);
+router.post('/:productId/reviews', authMiddleware, reviewController.createReview);
+router.delete('/:productId/reviews/:reviewId', authMiddleware, adminMiddleware, reviewController.deleteReview);
 
 // Routes admin CRUD
 router.post('/', authMiddleware, adminMiddleware, productController.createProduct);

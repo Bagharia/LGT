@@ -411,3 +411,62 @@ exports.updateOrderStatus = async (req, res) => {
     res.status(500).json({ error: 'Erreur lors de la mise à jour du statut' });
   }
 };
+
+// @desc    Suivre une commande publiquement (sans connexion)
+// @route   POST /api/orders/track
+// @access  Public
+exports.trackOrder = async (req, res) => {
+  try {
+    const { orderId, email } = req.body;
+
+    if (!orderId || !email) {
+      return res.status(400).json({ error: 'Numéro de commande et email requis' });
+    }
+
+    const orderIdInt = parseInt(orderId);
+    if (isNaN(orderIdInt)) {
+      return res.status(400).json({ error: 'Numéro de commande invalide' });
+    }
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderIdInt },
+      include: {
+        user: { select: { email: true } },
+        orderDesigns: {
+          include: {
+            design: {
+              include: {
+                product: { select: { id: true, name: true, mockupFrontUrl: true } }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Retourner 404 dans tous les cas (commande inexistante OU email ne correspond pas)
+    // pour ne pas confirmer l'existence d'une commande à un tiers
+    if (!order || order.user.email.toLowerCase() !== email.trim().toLowerCase()) {
+      return res.status(404).json({ error: 'Commande introuvable' });
+    }
+
+    res.json({
+      order: {
+        id: order.id,
+        status: order.status,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        totalPrice: order.totalPrice,
+        items: order.orderDesigns.map(od => ({
+          productName: od.design.product?.name || 'Produit personnalisé',
+          productImage: od.design.product?.mockupFrontUrl || od.design.frontPreviewUrl || null,
+          quantities: od.quantities,
+          finalPrice: od.finalPrice
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Erreur trackOrder:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+};

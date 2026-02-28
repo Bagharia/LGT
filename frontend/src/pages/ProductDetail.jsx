@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { productsAPI } from '../services/api';
+import { productsAPI, reviewsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import Header from '../components/Header';
@@ -29,8 +29,18 @@ const ProductDetail = () => {
   const [error, setError] = useState(null);
   const [isOrdering, setIsOrdering] = useState(false);
 
+  // Reviews
+  const [reviews, setReviews] = useState([]);
+  const [averageRating, setAverageRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [userRating, setUserRating] = useState(0);
+  const [hoveredStar, setHoveredStar] = useState(0);
+  const [userComment, setUserComment] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
   useEffect(() => {
     loadProduct();
+    loadReviews();
   }, [id]);
 
   const loadProduct = async () => {
@@ -42,6 +52,41 @@ const ProductDetail = () => {
       console.error('Erreur:', err);
       setError('Produit non trouvé');
       setLoading(false);
+    }
+  };
+
+  const loadReviews = async () => {
+    try {
+      const data = await reviewsAPI.getByProduct(id);
+      setReviews(data.reviews);
+      setAverageRating(data.averageRating);
+      setReviewCount(data.count);
+    } catch (err) {
+      console.error('Erreur chargement avis:', err);
+    }
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!isAuthenticated()) {
+      navigate('/login', { state: { from: `/product/${id}` } });
+      return;
+    }
+    if (userRating === 0) {
+      toast.error('Veuillez sélectionner une note');
+      return;
+    }
+    setIsSubmittingReview(true);
+    try {
+      await reviewsAPI.create(id, { rating: userRating, comment: userComment });
+      toast.success('Avis enregistré !');
+      setUserRating(0);
+      setUserComment('');
+      loadReviews();
+    } catch (err) {
+      toast.error('Erreur lors de l\'envoi de l\'avis');
+    } finally {
+      setIsSubmittingReview(false);
     }
   };
 
@@ -350,6 +395,104 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Section Avis clients */}
+      <section className="px-8 md:px-16 pb-16">
+        <div className="max-w-3xl mx-auto">
+          <div className="border-t border-white/10 pt-12 mb-10">
+            <h2 className="font-space-grotesk text-3xl font-bold text-white mb-2">Avis clients</h2>
+            {reviewCount > 0 && (
+              <div className="flex items-center gap-3 mt-3">
+                <div className="flex">
+                  {[1,2,3,4,5].map(s => (
+                    <svg key={s} className={`w-6 h-6 ${s <= Math.round(averageRating) ? 'text-yellow-400' : 'text-white/20'}`} fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <span className="text-white font-bold text-lg">{averageRating.toFixed(1)}</span>
+                <span className="text-text-muted">({reviewCount} avis)</span>
+              </div>
+            )}
+          </div>
+
+          {/* Formulaire */}
+          <div className="bg-[#0D2137] rounded-2xl p-6 mb-10">
+            <h3 className="text-white font-semibold text-lg mb-4">Laisser un avis</h3>
+            <form onSubmit={handleSubmitReview}>
+              {/* Étoiles interactives */}
+              <div className="flex gap-1 mb-4">
+                {[1,2,3,4,5].map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setUserRating(s)}
+                    onMouseEnter={() => setHoveredStar(s)}
+                    onMouseLeave={() => setHoveredStar(0)}
+                    className="p-1"
+                  >
+                    <svg className={`w-8 h-8 transition-colors ${s <= (hoveredStar || userRating) ? 'text-yellow-400' : 'text-white/20'}`} fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={userComment}
+                onChange={e => setUserComment(e.target.value)}
+                placeholder="Partagez votre expérience (optionnel)"
+                rows={3}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-text-muted resize-none focus:outline-none focus:border-accent/50 mb-4"
+              />
+              <button
+                type="submit"
+                disabled={isSubmittingReview}
+                className="btn-primary disabled:opacity-50"
+              >
+                {isSubmittingReview ? 'Envoi...' : 'Publier mon avis'}
+              </button>
+            </form>
+          </div>
+
+          {/* Liste des avis */}
+          {reviews.length === 0 ? (
+            <p className="text-text-muted text-center py-8">Aucun avis pour l'instant. Soyez le premier !</p>
+          ) : (
+            <div className="space-y-4">
+              {reviews.map(review => (
+                <div key={review.id} className="bg-[#0D2137] rounded-2xl p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      {/* Avatar initiale */}
+                      <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-accent font-bold text-sm flex-shrink-0">
+                        {review.user.firstName?.[0]?.toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">
+                          {review.user.firstName} {review.user.lastName?.[0]?.toUpperCase()}.
+                        </p>
+                        <div className="flex mt-1">
+                          {[1,2,3,4,5].map(s => (
+                            <svg key={s} className={`w-4 h-4 ${s <= review.rating ? 'text-yellow-400' : 'text-white/20'}`} fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <span className="text-text-muted text-sm flex-shrink-0">
+                      {new Date(review.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                  </div>
+                  {review.comment && (
+                    <p className="text-text-muted mt-3 leading-relaxed">{review.comment}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="border-t border-white/10 px-8 md:px-16 py-8">

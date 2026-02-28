@@ -262,6 +262,31 @@ export const ordersAPI = {
     const response = await api.put(`/orders/${id}/status`, { status });
     return response.data;
   },
+
+  // Suivi public d'une commande (sans connexion)
+  track: async (orderId, email) => {
+    const response = await api.post('/orders/track', { orderId, email });
+    return response.data;
+  },
+};
+
+// ==================== REVIEWS ====================
+
+export const reviewsAPI = {
+  getByProduct: async (productId) => {
+    const response = await api.get(`/products/${productId}/reviews`);
+    return response.data;
+  },
+
+  create: async (productId, data) => {
+    const response = await api.post(`/products/${productId}/reviews`, data);
+    return response.data;
+  },
+
+  delete: async (productId, reviewId) => {
+    const response = await api.delete(`/products/${productId}/reviews/${reviewId}`);
+    return response.data;
+  },
 };
 
 // ==================== UPLOAD ====================
