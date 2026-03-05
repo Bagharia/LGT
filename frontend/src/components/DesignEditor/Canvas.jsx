@@ -22,15 +22,37 @@ const PRINT_AREA = {
   height: 320,
 };
 
+const CANVAS_W = 500;
+const CANVAS_H = 600;
+
 const DesignCanvas = ({ side, onCanvasReady, tshirtColor, showGrid = true, snapToGrid = true }) => {
   const canvasRef = useRef(null);
   const fabricCanvasRef = useRef(null);
+  const wrapperRef = useRef(null);
   const [mousePos, setMousePos] = useState({ cmX: '0.0', cmY: '0.0' });
+  const [scale, setScale] = useState(1);
 
   // Historique undo/redo
   const historyStack = useRef([]);
   const historyIndex = useRef(-1);
   const isUndoRedo = useRef(false); // évite d'enregistrer lors d'un undo/redo
+
+  // Scale responsive : observe la largeur du wrapper et scale le canvas
+  useEffect(() => {
+    if (!wrapperRef.current) return;
+    const observer = new ResizeObserver(entries => {
+      const entry = entries[0];
+      if (!entry) return;
+      const availableW = entry.contentRect.width;
+      if (availableW > 0 && availableW < CANVAS_W) {
+        setScale(availableW / CANVAS_W);
+      } else {
+        setScale(1);
+      }
+    });
+    observer.observe(wrapperRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   // Throttle pour limiter les mises à jour
   const lastUpdate = useRef(0);
@@ -240,8 +262,17 @@ const DesignCanvas = ({ side, onCanvasReady, tshirtColor, showGrid = true, snapT
   }
 
   return (
-    <div className="flex justify-center items-center h-full w-full">
-      <div className="relative">
+    <div ref={wrapperRef} className="flex justify-center items-center h-full w-full overflow-hidden">
+      <div
+        className="relative"
+        style={{
+          transform: scale < 1 ? `scale(${scale})` : undefined,
+          transformOrigin: 'top center',
+          width: CANVAS_W,
+          height: CANVAS_H * scale < CANVAS_H ? CANVAS_H * scale : CANVAS_H,
+          flexShrink: 0,
+        }}
+      >
         {/* Indicateur de position - masqué avec la grille */}
         {showGrid && (
           <div

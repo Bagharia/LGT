@@ -1193,81 +1193,95 @@ body {
     color: #00D2FF;
   }
 
-  /* ========================================
-     EDITOR - RESPONSIVE MOBILE
-     ======================================== */
 
-  @media (max-width: 768px) {
-    /* L'éditeur t-shirt passe en colonne */
-    .editor-layout {
-      height: 100dvh;
-    }
+}
 
-    .editor-container {
-      flex-direction: column;
-      overflow-y: auto;
-    }
+/* ========================================
+   EDITOR - RESPONSIVE MOBILE
+   ======================================== */
 
-    /* Toolbar gauche -> barre horizontale en haut */
-    .editor-toggle-left {
-      width: 100%;
-      height: auto;
-      flex-direction: row;
-      border-right: none;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      padding: 0;
-      overflow-x: auto;
-      flex-shrink: 0;
-    }
-
-    .toggle-btn {
-      flex-direction: column;
-      padding: 8px 12px;
-      min-width: 64px;
-      flex-shrink: 0;
-    }
-
-    .toggle-btn.active {
-      border-left: none;
-      border-bottom: 3px solid #00D2FF;
-    }
-
-    .toggle-btn svg {
-      width: 20px;
-      height: 20px;
-      margin-bottom: 2px;
-    }
-
-    /* Canvas : hauteur reduite */
-    .editor-svg-tshirt {
-      flex: none;
-      height: 420px;
-    }
-
-    .tshirt-container {
-      padding: 12px;
-    }
-
-    /* Onglets devant/dos : plus compacts */
-    .tshirt-tabs {
-      padding: 8px 0;
-      gap: 12px;
-    }
-
-    .tshirt-tab .tab-preview {
-      width: 40px;
-      height: 50px;
-    }
-
-    /* Panel droit -> plein largeur en dessous */
-    .editor-panel-right {
-      width: 100%;
-      border-left: none;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      max-height: none;
-      flex-shrink: 0;
-    }
+@media (max-width: 768px) {
+  /* L'éditeur t-shirt passe en colonne */
+  .editor-layout {
+    height: 100dvh;
   }
 
+  .editor-container {
+    flex-direction: column;
+    overflow-y: auto;
+  }
 
+  /* Toolbar gauche -> barre horizontale en haut */
+  .editor-toggle-left {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 0;
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+
+  .toggle-btn {
+    flex-direction: column;
+    padding: 8px 12px;
+    min-width: 64px;
+    flex-shrink: 0;
+  }
+
+  .toggle-btn.active {
+    border-left: none;
+    border-bottom: 3px solid #00D2FF;
+  }
+
+  .toggle-btn svg {
+    width: 20px;
+    height: 20px;
+    margin-bottom: 2px;
+  }
+
+  /* Canvas : s'adapte au canvas scalé */
+  .editor-svg-tshirt {
+    flex: none;
+    min-height: 280px;
+    height: auto;
+  }
+
+  .tshirt-container {
+    padding: 8px;
+    align-items: flex-start;
+  }
+
+  /* Onglets devant/dos : plus compacts */
+  .tshirt-tabs {
+    padding: 8px 0;
+    gap: 12px;
+  }
+
+  .tshirt-tab .tab-preview {
+    width: 40px;
+    height: 50px;
+  }
+
+  /* Panel droit -> plein largeur en dessous */
+  .editor-panel-right {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    max-height: none;
+    flex-shrink: 0;
+  }
+
+  /* Scale le canvas Fabric.js (500px fixe) pour tenir dans l'ecran */
+  .tshirt-container canvas,
+  .tshirt-container .canvas-container {
+    transform-origin: top center;
+  }
+
+  .tshirt-container {
+    overflow: hidden;
+    align-items: flex-start;
+    justify-content: center;
+  }
 }
