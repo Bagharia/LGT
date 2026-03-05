@@ -304,7 +304,7 @@ const PosterEditor = () => {
           <span className="text-white/30">|</span>
           <span className="text-text-muted text-sm">{product?.name}</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-3">
           <Link to="/my-designs" className="text-text-muted hover:text-white text-sm flex items-center gap-1.5 transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -321,9 +321,9 @@ const PosterEditor = () => {
       </header>
 
       {/* Main content */}
-      <div className="flex-1 flex">
+      <div className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
         {/* Center - Preview */}
-        <div className="flex-1 flex items-center justify-center p-8">
+        <div className="flex-1 flex items-center justify-center p-4 md:p-8 min-h-[320px]">
           {/* Wall shadow */}
           <div
             ref={previewRef}
@@ -459,7 +459,7 @@ const PosterEditor = () => {
         </div>
 
         {/* Right Panel */}
-        <div className="w-[360px] border-l border-white/10 bg-[#0D2137] overflow-y-auto">
+        <div className="w-full md:w-[360px] border-t md:border-t-0 md:border-l border-white/10 bg-[#0D2137] overflow-y-auto">
           <div className="p-6 space-y-6">
 
             {/* Upload Section */}
