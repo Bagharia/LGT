@@ -336,7 +336,7 @@ const Editor = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
-          <Link to="/"><img src="/logo.jpg" alt="LGT" className="h-8 w-auto object-contain" /></Link>
+          <Link to="/"><img src="/logo-removebg-preview.png" alt="LGT" className="h-8 w-auto object-contain" /></Link>
           <span className="text-white/30">|</span>
           <span className="text-text-muted text-sm">{product?.name}</span>
         </div>

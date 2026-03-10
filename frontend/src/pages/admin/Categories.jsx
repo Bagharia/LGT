@@ -350,7 +350,7 @@ const AdminCategories = () => {
       {/* Footer */}
       <footer className="border-t border-white/10 px-8 md:px-16 py-8 mt-12">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <Link to="/"><img src="/logo.jpg" alt="LGT" className="h-8 w-auto object-contain" /></Link>
+          <Link to="/"><img src="/logo-removebg-preview.png" alt="LGT" className="h-8 w-auto object-contain" /></Link>
           <p className="text-text-muted text-sm">
             &copy; 2026 LGT. Panel Administrateur.
           </p>

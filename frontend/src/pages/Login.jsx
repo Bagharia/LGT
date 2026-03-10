@@ -34,7 +34,7 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center px-8 md:px-16">
         <div className="w-full max-w-md">
           {/* Logo */}
-          <Link to="/"><img src="/logo.jpg" alt="LGT" className="h-10 w-auto object-contain" /></Link>
+          <Link to="/"><img src="/logo-removebg-preview.png" alt="LGT" className="h-10 w-auto object-contain" /></Link>
 
           {/* Header */}
           <div className="mb-10">

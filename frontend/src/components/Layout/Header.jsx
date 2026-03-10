@@ -20,7 +20,7 @@ const Header = () => {
       {/* Barre principale */}
       <div className="px-6 md:px-16 py-5 flex justify-between items-center mix-blend-difference">
         <Link to="/" onClick={closeMenu}>
-          <img src="/logo.jpg" alt="LGT" className="h-10 w-auto object-contain" />
+          <img src="/logo-removebg-preview.png" alt="LGT" className="h-10 w-auto object-contain" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-10">
