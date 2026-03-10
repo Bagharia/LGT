@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { stripeAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import useSEO from '../hooks/useSEO';
 
@@ -9,9 +10,12 @@ const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const orderId = searchParams.get('order_id');
+  const { isAuthenticated } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showRegisterBanner, setShowRegisterBanner] = useState(false);
+  const guestEmail = typeof window !== 'undefined' ? localStorage.getItem('postPaymentEmail') : null;
 
   useEffect(() => {
     if (sessionId && orderId) {
@@ -19,6 +23,11 @@ const PaymentSuccess = () => {
     } else {
       setError('Paramètres manquants');
       setLoading(false);
+    }
+    // Afficher la bannière si commande passée en guest
+    if (!isAuthenticated() && guestEmail) {
+      setShowRegisterBanner(true);
+      localStorage.removeItem('postPaymentEmail');
     }
   }, [sessionId, orderId]);
 
@@ -126,13 +135,46 @@ const PaymentSuccess = () => {
             </ul>
           </div>
 
+          {/* Bannière créer un compte pour les guests */}
+          {showRegisterBanner && (
+            <div className="mb-8 p-5 bg-accent/10 border border-accent/30 rounded-2xl text-left">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="text-white font-semibold mb-1">Créez un compte gratuitement</p>
+                  <p className="text-text-muted text-sm mb-3">
+                    Retrouvez vos commandes, sauvegardez vos designs et commandez encore plus vite la prochaine fois.
+                  </p>
+                  <div className="flex gap-3">
+                    <Link
+                      to={`/register${guestEmail ? `?email=${encodeURIComponent(guestEmail)}` : ''}`}
+                      className="px-4 py-2 bg-accent text-primary rounded-xl text-sm font-semibold hover:bg-accent/90 transition-colors"
+                    >
+                      Créer mon compte
+                    </Link>
+                    <button
+                      onClick={() => setShowRegisterBanner(false)}
+                      className="px-4 py-2 text-text-muted text-sm hover:text-white transition-colors"
+                    >
+                      Plus tard
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              to="/my-orders"
+              to={`/track-order`}
               className="px-8 py-4 bg-accent text-primary rounded-full font-semibold hover:shadow-lg hover:shadow-accent/30 transition-all"
             >
-              Voir mes commandes
+              Suivre ma commande
             </Link>
             <Link
               to="/products"

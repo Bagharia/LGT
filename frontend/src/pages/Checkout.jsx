@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { ordersAPI, stripeAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import Header from '../components/Header';
 import useSEO from '../hooks/useSEO';
@@ -9,14 +10,18 @@ const Checkout = () => {
   useSEO({ title: 'Paiement', path: '/checkout' });
   const navigate = useNavigate();
   const toast = useToast();
+  const { isAuthenticated } = useAuth();
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get('orderId');
+  const isGuest = searchParams.get('guest') === '1';
 
   const [order, setOrder] = useState(null);
   const [pendingOrder, setPendingOrder] = useState(null);
+  const [guestDesign, setGuestDesign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [creatingOrder, setCreatingOrder] = useState(false);
+  const [showRegisterPrompt, setShowRegisterPrompt] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -30,8 +35,17 @@ const Checkout = () => {
   });
 
   useEffect(() => {
-    if (orderId) {
-      // Mode: commande existante (design personnalisé)
+    if (isGuest) {
+      // Mode: design guest depuis l'éditeur
+      const stored = localStorage.getItem('guestDesign');
+      if (stored) {
+        setGuestDesign(JSON.parse(stored));
+        setLoading(false);
+      } else {
+        navigate('/products');
+      }
+    } else if (orderId) {
+      // Mode: commande existante (utilisateur connecté)
       loadOrder();
     } else {
       // Mode: produit fini depuis localStorage
@@ -43,7 +57,7 @@ const Checkout = () => {
         navigate('/products');
       }
     }
-  }, [orderId]);
+  }, [orderId, isGuest]);
 
   const loadOrder = async () => {
     try {
@@ -53,15 +67,12 @@ const Checkout = () => {
     } catch (error) {
       console.error('Erreur:', error);
       toast.error('Commande non trouvée');
-      navigate('/my-orders');
+      navigate('/products');
     }
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -75,32 +86,48 @@ const Checkout = () => {
 
     try {
       setSubmitting(true);
-
       let finalOrderId = orderId;
 
-      // Si c'est un produit fini (pas d'orderId), créer d'abord la commande
-      if (!orderId && pendingOrder) {
+      if (isGuest && guestDesign) {
+        // Créer la commande guest avec design + guestEmail
         setCreatingOrder(true);
-
-        // Créer la commande pour produit fini
+        const result = await ordersAPI.create({
+          type: 'guest-design',
+          productId: guestDesign.productId,
+          frontDesignJson: guestDesign.frontDesignJson,
+          backDesignJson: guestDesign.backDesignJson,
+          frontPreviewUrl: guestDesign.frontPreviewUrl,
+          backPreviewUrl: guestDesign.backPreviewUrl,
+          tshirtColor: guestDesign.tshirtColor,
+          quantities: guestDesign.quantities,
+          totalPrice: guestDesign.finalPrice,
+          guestEmail: formData.email,
+        });
+        finalOrderId = result.order.id;
+        localStorage.removeItem('guestDesign');
+        setCreatingOrder(false);
+      } else if (!orderId && pendingOrder) {
+        // Produit fini
+        setCreatingOrder(true);
         const orderData = {
           type: 'ready-made',
           productId: pendingOrder.productId,
           quantities: pendingOrder.quantities,
           totalPrice: pendingOrder.totalPrice,
+          guestEmail: isAuthenticated() ? undefined : formData.email,
         };
-
         const result = await ordersAPI.create(orderData);
         finalOrderId = result.order.id;
-
-        // Nettoyer le localStorage
         localStorage.removeItem('pendingOrder');
         setCreatingOrder(false);
       }
 
-      // Créer la session de paiement Stripe
       const { url } = await stripeAPI.createCheckoutSession(finalOrderId, formData);
       if (url) {
+        // Proposer création de compte si guest
+        if (!isAuthenticated()) {
+          localStorage.setItem('postPaymentEmail', formData.email);
+        }
         window.location.href = url;
       }
     } catch (error) {
@@ -112,9 +139,14 @@ const Checkout = () => {
     }
   };
 
-  // Calculer le total à afficher
-  const displayTotal = order?.totalPrice || pendingOrder?.totalPrice || 0;
-  const displayItems = order?.designs || (pendingOrder ? [{
+  const displayTotal = order?.totalPrice || guestDesign?.finalPrice || pendingOrder?.totalPrice || 0;
+  const displayItems = order?.designs || (guestDesign ? [{
+    id: 'guest',
+    name: guestDesign.productName,
+    frontPreviewUrl: guestDesign.frontPreviewUrl,
+    quantities: guestDesign.quantities,
+    finalPrice: guestDesign.finalPrice,
+  }] : pendingOrder ? [{
     id: 'pending',
     name: pendingOrder.productName,
     frontPreviewUrl: pendingOrder.productImage,
@@ -135,12 +167,9 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-primary">
-      {/* Header */}
       <Header />
 
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-8 md:px-16 pt-28 pb-12">
-        {/* Title */}
         <div className="mb-12">
           <Link to="/products" className="text-accent hover:text-white transition-colors text-sm mb-4 inline-flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,9 +181,22 @@ const Checkout = () => {
             Finaliser la <span className="accent">commande</span>
           </h1>
           <p className="text-text-muted text-lg">
-            {orderId ? `Commande #${orderId} - ` : ''}Plus qu'une étape avant de recevoir {pendingOrder ? 'votre t-shirt' : 'vos créations'}
+            Plus qu'une étape avant de recevoir {guestDesign || (order && !pendingOrder) ? 'votre création' : 'votre t-shirt'}
           </p>
         </div>
+
+        {/* Bannière connexion pour les guests */}
+        {!isAuthenticated() && !showRegisterPrompt && (
+          <div className="mb-8 p-4 bg-accent/10 border border-accent/20 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <p className="text-white font-medium">Vous avez déjà un compte ?</p>
+              <p className="text-text-muted text-sm">Connectez-vous pour sauvegarder vos designs et suivre vos commandes.</p>
+            </div>
+            <Link to="/login" className="flex-shrink-0 px-5 py-2 bg-accent text-primary font-semibold rounded-xl text-sm hover:bg-accent/90 transition-colors">
+              Se connecter
+            </Link>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
           {/* Form Section */}
@@ -165,7 +207,6 @@ const Checkout = () => {
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Name Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-text-muted mb-2">
@@ -313,7 +354,6 @@ const Checkout = () => {
                 Récapitulatif
               </h2>
 
-              {/* Order Items */}
               <div className="space-y-6 mb-8">
                 {displayItems.map((item) => (
                   <div key={item.id} className="flex gap-4 pb-6 border-b border-white/10">
@@ -336,14 +376,13 @@ const Checkout = () => {
                         ))}
                       </div>
                       <p className="text-accent font-semibold">
-                        {item.finalPrice?.toFixed(2)} €
+                        {parseFloat(item.finalPrice).toFixed(2)} €
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Totals */}
               <div className="space-y-3 border-t border-white/10 pt-6">
                 <div className="flex justify-between text-text-muted">
                   <span>Sous-total</span>
@@ -359,7 +398,6 @@ const Checkout = () => {
                 </div>
               </div>
 
-              {/* Info Badges */}
               <div className="mt-8 space-y-3">
                 <div className="flex items-center gap-3 p-4 rounded-xl bg-accent/10 border border-accent/20">
                   <svg className="w-5 h-5 text-accent" fill="currentColor" viewBox="0 0 20 20">

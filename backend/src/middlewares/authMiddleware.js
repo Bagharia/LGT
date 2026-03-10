@@ -58,4 +58,20 @@ const adminMiddleware = (req, res, next) => {
   next();
 };
 
-module.exports = { authMiddleware, adminMiddleware };
+// Middleware optionnel : attache req.user si token présent, sinon continue sans
+const optionalAuthMiddleware = (req, _res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return next();
+    }
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { userId: decoded.userId, email: decoded.email, role: decoded.role };
+    next();
+  } catch {
+    next();
+  }
+};
+
+module.exports = { authMiddleware, optionalAuthMiddleware, adminMiddleware };

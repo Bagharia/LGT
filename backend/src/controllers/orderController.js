@@ -17,19 +17,23 @@ const STATUS_LABELS = {
 
 // @desc    Créer une nouvelle commande
 // @route   POST /api/orders
-// @access  Private
+// @access  Public (guest) or Private
 exports.createOrder = async (req, res) => {
   try {
-    const { designs, totalPrice, type, productId, quantities } = req.body;
-    const userId = req.user.userId;
+    const { designs, totalPrice, type, productId, quantities, guestEmail } = req.body;
+    const userId = req.user?.userId || null;
 
-    console.log('📦 Création commande pour userId:', userId);
+    console.log('📦 Création commande pour userId:', userId || 'guest');
     console.log('📦 Type:', type || 'custom');
     console.log('📦 Designs reçus:', JSON.stringify(designs, null, 2));
     console.log('📦 Prix total:', totalPrice);
 
+    if (!userId && !guestEmail) {
+      return res.status(400).json({ error: 'Email requis pour commander sans compte' });
+    }
+
     // Vérifier minimum articles pour comptes pro
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { accountType: true } });
+    const user = userId ? await prisma.user.findUnique({ where: { id: userId }, select: { accountType: true } }) : null;
     if (user?.accountType === 'pro') {
       let totalArticles = 0;
       if (type === 'ready-made' && quantities) {
@@ -50,6 +54,7 @@ exports.createOrder = async (req, res) => {
     const order = await prisma.order.create({
       data: {
         userId: userId,
+        guestEmail: userId ? null : guestEmail,
         totalPrice: totalPrice,
         status: 'PENDING',
         shippingAddress: 'A définir',
@@ -59,9 +64,29 @@ exports.createOrder = async (req, res) => {
       }
     });
 
-    if (type === 'ready-made' && productId) {
+    if (type === 'guest-design' && productId) {
+      // Commande guest avec design personnalisé (pas de compte)
+      const { frontDesignJson, backDesignJson, frontPreviewUrl, backPreviewUrl, tshirtColor: tc } = req.body;
+      const design = await prisma.design.create({
+        data: {
+          userId: null,
+          productId: parseInt(productId),
+          frontDesignJson: frontDesignJson || '{"objects":[]}',
+          backDesignJson: backDesignJson || null,
+          frontPreviewUrl: frontPreviewUrl || null,
+          backPreviewUrl: backPreviewUrl || null,
+          tshirtColor: tc || null,
+          name: 'Design personnalisé',
+          quantities: quantities,
+          totalPrice: totalPrice,
+          finalPrice: totalPrice
+        }
+      });
+      await prisma.orderDesign.create({
+        data: { orderId: order.id, designId: design.id, quantities: quantities || {}, finalPrice: totalPrice }
+      });
+    } else if (type === 'ready-made' && productId) {
       // Commande de produit fini (sans design personnalisé)
-      // Créer un design "vide" lié au produit pour le OrderDesign
       const design = await prisma.design.create({
         data: {
           userId: userId,
@@ -120,7 +145,8 @@ exports.createOrder = async (req, res) => {
 
     // Email alerte admin
     try {
-      const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, firstName: true, lastName: true } });
+      const clientUser = userId ? await prisma.user.findUnique({ where: { id: userId }, select: { email: true, firstName: true, lastName: true } }) : null;
+      const clientLabel = clientUser ? `${clientUser.firstName || ''} ${clientUser.lastName || ''} (${clientUser.email})` : `Guest (${guestEmail})`;
       const totalArticles = completeOrder.orderDesigns.reduce((sum, od) => {
         return sum + Object.values(od.quantities || {}).reduce((s, q) => s + q, 0);
       }, 0);
@@ -134,7 +160,7 @@ exports.createOrder = async (req, res) => {
             <h2 style="color: #fff; margin-bottom: 24px;">Nouvelle commande reçue</h2>
             <div style="background: #0D2137; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
               <p style="color: #94a3b8; margin: 0 0 8px;"><strong style="color:#fff;">Commande #:</strong> ${order.id}</p>
-              <p style="color: #94a3b8; margin: 0 0 8px;"><strong style="color:#fff;">Client :</strong> ${user?.firstName || ''} ${user?.lastName || ''} (${user?.email})</p>
+              <p style="color: #94a3b8; margin: 0 0 8px;"><strong style="color:#fff;">Client :</strong> ${clientLabel}</p>
               <p style="color: #94a3b8; margin: 0 0 8px;"><strong style="color:#fff;">Articles :</strong> ${totalArticles}</p>
               <p style="color: #94a3b8; margin: 0;"><strong style="color:#fff;">Total :</strong> ${totalPrice} €</p>
             </div>
@@ -215,17 +241,25 @@ exports.getMyOrders = async (req, res) => {
 
 // @desc    Récupérer une commande par ID
 // @route   GET /api/orders/:id
-// @access  Private
+// @access  Private or Guest (via guestEmail query param)
 exports.getOrderById = async (req, res) => {
   try {
     const orderId = parseInt(req.params.id);
-    const userId = req.user.userId;
+    const userId = req.user?.userId || null;
+    const guestEmail = req.query.guestEmail;
+
+    // Build where clause: user must own the order
+    let whereClause = { id: orderId };
+    if (userId) {
+      whereClause.userId = userId;
+    } else if (guestEmail) {
+      whereClause.guestEmail = guestEmail;
+    } else {
+      return res.status(401).json({ error: 'Authentification requise' });
+    }
 
     const order = await prisma.order.findFirst({
-      where: {
-        id: orderId,
-        userId: userId
-      },
+      where: whereClause,
       include: {
         orderDesigns: {
           include: {
@@ -375,17 +409,19 @@ exports.updateOrderStatus = async (req, res) => {
 
     // Email au client pour le changement de statut
     try {
+      const clientEmail = order.user?.email || order.guestEmail;
+      if (clientEmail) {
       const statusLabel = STATUS_LABELS[upperStatus] || upperStatus;
       const statusColor = upperStatus === 'SHIPPED' ? '#22c55e' : upperStatus === 'DELIVERED' ? '#0EA5E9' : upperStatus === 'CANCELLED' ? '#ef4444' : '#f59e0b';
       await getResend().emails.send({
         from: 'LGT Imprimerie <noreply@lgt-imprimerie.com>',
-        to: order.user.email,
+        to: clientEmail,
         subject: `Commande #${orderId} — ${statusLabel}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0A1931; color: #fff; padding: 40px; border-radius: 12px;">
             <h1 style="color: #0EA5E9; margin-bottom: 4px;">LGT<span style="color: #0EA5E9;">.</span></h1>
             <h2 style="color: #fff; margin-bottom: 24px;">Mise à jour de votre commande</h2>
-            <p style="color: #94a3b8; margin-bottom: 20px;">Bonjour ${order.user.firstName || ''},</p>
+            <p style="color: #94a3b8; margin-bottom: 20px;">Bonjour ${order.user?.firstName || ''},</p>
             <div style="background: #0D2137; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
               <p style="color: #94a3b8; margin: 0 0 8px;"><strong style="color:#fff;">Commande #:</strong> ${orderId}</p>
               <p style="color: #94a3b8; margin: 0;"><strong style="color:#fff;">Nouveau statut :</strong> <span style="color: ${statusColor}; font-weight: bold;">${statusLabel}</span></p>
@@ -398,6 +434,7 @@ exports.updateOrderStatus = async (req, res) => {
           </div>
         `,
       });
+      }
     } catch (emailErr) {
       console.error('⚠️ Erreur email statut client:', emailErr.message);
     }
@@ -444,9 +481,9 @@ exports.trackOrder = async (req, res) => {
       }
     });
 
-    // Retourner 404 dans tous les cas (commande inexistante OU email ne correspond pas)
-    // pour ne pas confirmer l'existence d'une commande à un tiers
-    if (!order || order.user.email.toLowerCase() !== email.trim().toLowerCase()) {
+    // Vérifier que l'email correspond (compte ou guest)
+    const orderEmail = order?.user?.email || order?.guestEmail;
+    if (!order || !orderEmail || orderEmail.toLowerCase() !== email.trim().toLowerCase()) {
       return res.status(404).json({ error: 'Commande introuvable' });
     }
 

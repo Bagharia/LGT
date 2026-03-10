@@ -81,17 +81,17 @@ model Product {
 // Modèle pour les designs créés par les utilisateurs
 model Design {
   id        Int      @id @default(autoincrement())
-  userId    Int
+  userId    Int?
   productId Int
-  
+
   // Données JSON de Fabric.js pour chaque face
   frontDesignJson String  @db.Text // Canvas devant
   backDesignJson  String? @db.Text // Canvas dos (optionnel)
-  
+
   // URLs des images de prévisualisation générées
   frontPreviewUrl String?
   backPreviewUrl  String?
-  
+
   // Métadonnées
   name        String?  // Nom du design (optionnel)
   quantities  Json?    // Quantités par taille {XS: 1, S: 2, M: 1, ...}
@@ -108,7 +108,7 @@ model Design {
   updatedAt DateTime @updatedAt
 
   // Relations
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
   product      Product       @relation(fields: [productId], references: [id])
   orderItems   OrderItem[]
   orderDesigns OrderDesign[]
@@ -119,24 +119,25 @@ model Design {
 // Modèle pour les commandes
 model Order {
   id              Int         @id @default(autoincrement())
-  userId          Int
+  userId          Int?
+  guestEmail      String?     // Email du client invité (sans compte)
   totalPrice      Float
   status          OrderStatus @default(PENDING)
-  
+
   // Informations de livraison
   shippingAddress String
   shippingCity    String
   shippingZip     String
   shippingCountry String
-  
+
   // Informations de paiement
   stripeSessionId String?     @unique
-  
+
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
   // Relations
-  user         User          @relation(fields: [userId], references: [id])
+  user         User?         @relation(fields: [userId], references: [id])
   orderItems   OrderItem[]
   orderDesigns OrderDesign[]
 

@@ -87,13 +87,13 @@ const Home = () => {
             Crée en quelques clics un objet unique qui te ressemble vraiment.
           </p>
           <div className="hero-buttons">
-            <Link to="/products" className="btn-primary">
-              Explorer la Collection
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
+            <Link to="/products" className="btn-primary" style={{ fontSize: '1.1rem', padding: '1rem 2.5rem', boxShadow: '0 0 32px rgba(0,210,255,0.35)' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
               </svg>
+              Créer mon design
             </Link>
-            <a href="#showcase" className="btn-secondary">Voir le Lookbook</a>
+            <a href="#products" className="btn-secondary">Voir la collection</a>
           </div>
         </div>
         <div className="scroll-indicator">

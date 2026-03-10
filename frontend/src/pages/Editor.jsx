@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { productsAPI, designsAPI, ordersAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import DesignCanvas from '../components/DesignEditor/Canvas';
 import RightPanel from '../components/DesignEditor/RightPanel';
@@ -11,6 +12,7 @@ const Editor = () => {
   const navigate = useNavigate();
   const toast = useToast();
   const [searchParams] = useSearchParams();
+  const { isAuthenticated } = useAuth();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -245,12 +247,30 @@ const Editor = () => {
 
       const frontJson = JSON.stringify(frontCanvas.toJSON());
       const backJson = isTwoSided && backCanvas ? JSON.stringify(backCanvas.toJSON()) : null;
-
       const frontPreview = frontCanvas.toDataURL({ format: 'png' });
       const backPreview = isTwoSided && backCanvas ? backCanvas.toDataURL({ format: 'png' }) : null;
 
-      const designId = searchParams.get('designId');
+      if (!isAuthenticated()) {
+        // Guest : stocker le design en localStorage et aller au checkout
+        const guestDesign = {
+          productId: parseInt(productId),
+          productName: product?.name || 'Design personnalisé',
+          productImage: frontPreview,
+          frontDesignJson: frontJson,
+          backDesignJson: backJson,
+          frontPreviewUrl: frontPreview,
+          backPreviewUrl: backPreview,
+          tshirtColor: tshirtColor,
+          quantities: quantities,
+          totalPrice: totalPrice,
+          finalPrice: finalPrice,
+        };
+        localStorage.setItem('guestDesign', JSON.stringify(guestDesign));
+        navigate('/checkout?guest=1');
+        return;
+      }
 
+      const designId = searchParams.get('designId');
       let finalDesignId;
 
       if (designId) {
@@ -260,10 +280,7 @@ const Editor = () => {
           frontPreviewUrl: frontPreview,
           backPreviewUrl: backPreview,
           name: `Design ${new Date().toLocaleDateString()}`,
-          quantities: quantities,
-          totalPrice: totalPrice,
-          finalPrice: finalPrice,
-          tshirtColor: tshirtColor
+          quantities, totalPrice, finalPrice, tshirtColor
         });
         finalDesignId = parseInt(designId);
       } else {
@@ -274,25 +291,16 @@ const Editor = () => {
           frontPreviewUrl: frontPreview,
           backPreviewUrl: backPreview,
           name: `Design ${new Date().toLocaleDateString()}`,
-          quantities: quantities,
-          totalPrice: totalPrice,
-          finalPrice: finalPrice,
-          tshirtColor: tshirtColor
+          quantities, totalPrice, finalPrice, tshirtColor
         });
         finalDesignId = savedDesign.design.id;
       }
 
-      // Créer la commande
       const orderResult = await ordersAPI.create({
-        designs: [{
-          designId: finalDesignId,
-          quantities: quantities,
-          finalPrice: finalPrice
-        }],
+        designs: [{ designId: finalDesignId, quantities, finalPrice }],
         totalPrice: finalPrice
       });
 
-      // Rediriger vers le checkout pour le paiement
       navigate(`/checkout?orderId=${orderResult.order.id}`);
     } catch (error) {
       console.error('Erreur:', error);

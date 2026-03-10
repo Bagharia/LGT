@@ -68,22 +68,8 @@ function AppContent() {
       {/* Editor Route - Full Screen (no navbar/footer) */}
       {isEditorRoute ? (
         <Routes>
-          <Route
-            path="/editor/:productId"
-            element={
-              <ProtectedRoute>
-                <Editor />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/poster-editor/:productId"
-            element={
-              <ProtectedRoute>
-                <PosterEditor />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/editor/:productId" element={<Editor />} />
+          <Route path="/poster-editor/:productId" element={<PosterEditor />} />
         </Routes>
       ) : isFullPageRoute ? (
         /* Pages with new THREAD design - Full page layout */
@@ -128,22 +114,8 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/checkout"
-            element={
-              <ProtectedRoute>
-                <Checkout />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/payment-success"
-            element={
-              <ProtectedRoute>
-                <PaymentSuccess />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route
             path="/profile"
             element={
