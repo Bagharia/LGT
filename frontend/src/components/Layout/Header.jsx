@@ -19,8 +19,8 @@ const Header = () => {
     <header className="fixed top-0 left-0 w-full z-50">
       {/* Barre principale */}
       <div className="px-6 md:px-16 py-5 flex justify-between items-center mix-blend-difference">
-        <Link to="/" className="font-space-grotesk text-2xl font-bold text-white tracking-tight" onClick={closeMenu}>
-          LGT<span className="text-accent">.</span>
+        <Link to="/" onClick={closeMenu}>
+          <img src="/logo.jpg" alt="LGT" className="h-10 w-auto object-contain" />
         </Link>
 
         <nav className="hidden md:flex items-center gap-10">

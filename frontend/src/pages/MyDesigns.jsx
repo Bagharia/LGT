@@ -302,9 +302,7 @@ const MyDesigns = () => {
       {/* Footer */}
       <footer className="border-t border-white/10 px-8 md:px-16 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <Link to="/" className="font-space-grotesk text-xl font-bold text-white">
-            LGT<span className="text-accent">.</span>
-          </Link>
+          <Link to="/"><img src="/logo.jpg" alt="LGT" className="h-8 w-auto object-contain" /></Link>
           <p className="text-text-muted text-sm">
             &copy; 2026 LGT. Tous droits réservés.
           </p>

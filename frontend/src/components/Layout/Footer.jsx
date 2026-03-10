@@ -6,9 +6,7 @@ const Footer = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
         {/* Brand */}
         <div>
-          <Link to="/" className="font-space-grotesk text-2xl font-bold text-white block mb-5">
-            LGT<span className="text-accent">.</span>
-          </Link>
+          <Link to="/"><img src="/logo.jpg" alt="LGT" className="h-10 w-auto object-contain" /></Link>
           <p className="text-text-muted leading-relaxed mb-8">
             T-shirts personnalisés premium pour ceux qui osent se démarquer. Design unique, qualité exceptionnelle.
           </p>

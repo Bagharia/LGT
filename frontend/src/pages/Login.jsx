@@ -34,9 +34,7 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center px-8 md:px-16">
         <div className="w-full max-w-md">
           {/* Logo */}
-          <Link to="/" className="font-space-grotesk text-3xl font-bold text-white mb-12 block">
-            LGT<span className="text-accent">.</span>
-          </Link>
+          <Link to="/"><img src="/logo.jpg" alt="LGT" className="h-10 w-auto object-contain" /></Link>
 
           {/* Header */}
           <div className="mb-10">

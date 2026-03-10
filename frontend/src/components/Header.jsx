@@ -44,8 +44,8 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 w-full px-6 md:px-16 py-4 flex justify-between items-center z-50 backdrop-blur-md border-b" style={{ background: 'rgba(10, 25, 49, 0.75)', borderColor: 'rgba(0, 210, 255, 0.15)', boxShadow: '0 0 30px rgba(0, 210, 255, 0.08)' }}>
       {/* Logo */}
-      <Link to="/" className="font-space-grotesk text-2xl font-bold text-white tracking-tight">
-        LGT<span className="text-accent">.</span>
+      <Link to="/">
+        <img src="/logo.jpg" alt="LGT" className="h-10 w-auto object-contain" />
       </Link>
 
       {/* Desktop Navigation */}
