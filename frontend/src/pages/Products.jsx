@@ -33,7 +33,8 @@ const Products = () => {
       if (matchedCat) {
         setActiveCategory(matchedCat.id);
       } else if (cats.length > 0) {
-        setActiveCategory(cats[0].id);
+        const tshirtCat = cats.find(c => c.hasTwoSides !== false) || cats[0];
+        setActiveCategory(tshirtCat.id);
       }
       setLoading(false);
     } catch (error) {
