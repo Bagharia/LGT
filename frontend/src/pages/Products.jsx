@@ -108,8 +108,8 @@ const Products = () => {
                   onClick={() => { setActiveCategory(cat.id); setSearchTerm(''); }}
                   className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
                     activeCategory === cat.id
-                      ? 'bg-accent text-primary shadow-lg shadow-accent/30'
-                      : 'bg-white/5 text-text-muted hover:text-white hover:bg-white/10 border border-white/10'
+                      ? 'bg-accent text-primary font-bold shadow-lg shadow-accent/30'
+                      : 'text-text-muted hover:text-white'
                   }`}
                 >
                   {cat.name}
