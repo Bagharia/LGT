@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const stripeController = require('../controllers/stripeController');
-const { authMiddleware } = require('../middlewares/authMiddleware');
+const { optionalAuthMiddleware } = require('../middlewares/authMiddleware');
 
-// Creer une session de paiement (authentifie)
-router.post('/create-checkout-session', authMiddleware, stripeController.createCheckoutSession);
+// Creer une session de paiement (guest ou connecté)
+router.post('/create-checkout-session', optionalAuthMiddleware, stripeController.createCheckoutSession);
 
-// Verifier un paiement (authentifie)
-router.get('/verify-payment', authMiddleware, stripeController.verifyPayment);
+// Verifier un paiement (guest ou connecté)
+router.get('/verify-payment', optionalAuthMiddleware, stripeController.verifyPayment);
 
 // Webhook Stripe (pas d'auth, Stripe envoie directement)
 router.post('/webhook', stripeController.handleWebhook);

@@ -6,19 +6,19 @@ const prisma = new PrismaClient();
 exports.createCheckoutSession = async (req, res) => {
   try {
     const { orderId, shippingInfo } = req.body;
-    const userId = req.user.userId;
+    const userId = req.user?.userId || null;
 
     console.log('=== CREATE CHECKOUT SESSION ===');
     console.log('orderId:', orderId, 'type:', typeof orderId);
-    console.log('userId:', userId);
+    console.log('userId:', userId || 'guest');
     console.log('shippingInfo:', JSON.stringify(shippingInfo));
 
-    // Recuperer la commande avec les designs
+    // Recuperer la commande — owner check: userId ou guestEmail
+    const whereClause = { id: parseInt(orderId) };
+    if (userId) whereClause.userId = userId;
+
     const order = await prisma.order.findFirst({
-      where: {
-        id: parseInt(orderId),
-        userId: userId
-      },
+      where: whereClause,
       include: {
         orderDesigns: {
           include: {
@@ -126,13 +126,13 @@ exports.handleWebhook = async (req, res) => {
 exports.verifyPayment = async (req, res) => {
   try {
     const { sessionId, orderId } = req.query;
-    const userId = req.user.userId;
+    const userId = req.user?.userId || null;
+
+    const whereClause = { id: parseInt(orderId) };
+    if (userId) whereClause.userId = userId;
 
     const order = await prisma.order.findFirst({
-      where: {
-        id: parseInt(orderId),
-        userId: userId
-      }
+      where: whereClause
     });
 
     if (!order) {
