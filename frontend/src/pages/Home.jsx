@@ -12,6 +12,7 @@ const Home = () => {
     path: '/',
   });
   const [products, setProducts] = useState([]);
+  const [firstTshirtId, setFirstTshirtId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loaderHidden, setLoaderHidden] = useState(false);
 
@@ -44,13 +45,16 @@ const Home = () => {
   const loadProducts = async () => {
     try {
       const data = await productsAPI.getFeatured();
-      // Fallback : si aucun produit vedette, afficher les 5 premiers
-      if (data.products.length === 0) {
+      let list = data.products;
+      if (list.length === 0) {
         const all = await productsAPI.getAll();
-        setProducts(all.products.slice(0, 5));
-      } else {
-        setProducts(data.products);
+        list = all.products.slice(0, 5);
       }
+      setProducts(list);
+      // Premier produit t-shirt (pas poster) pour le CTA "Créer mon design"
+      const all = await productsAPI.getAll();
+      const tshirt = all.products.find(p => p.category?.hasTwoSides !== false);
+      if (tshirt) setFirstTshirtId(tshirt.id);
       setLoading(false);
     } catch (error) {
       console.error('Erreur lors du chargement des produits:', error);
@@ -87,7 +91,11 @@ const Home = () => {
             Crée en quelques clics un objet unique qui te ressemble vraiment.
           </p>
           <div className="hero-buttons">
-            <Link to="/products" className="btn-primary" style={{ fontSize: '1.1rem', padding: '1rem 2.5rem', boxShadow: '0 0 32px rgba(0,210,255,0.35)' }}>
+            <Link
+              to={firstTshirtId ? `/editor/${firstTshirtId}` : '/products'}
+              className="btn-primary"
+              style={{ fontSize: '1.1rem', padding: '1rem 2.5rem', boxShadow: '0 0 32px rgba(0,210,255,0.35)' }}
+            >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
               </svg>
