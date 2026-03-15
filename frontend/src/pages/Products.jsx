@@ -106,10 +106,10 @@ const Products = () => {
                 <button
                   key={cat.id}
                   onClick={() => { setActiveCategory(cat.id); setSearchTerm(''); }}
-                  className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+                  className={`px-6 py-3 font-semibold transition-all duration-300 border-b-2 ${
                     activeCategory === cat.id
-                      ? 'bg-accent text-primary font-bold shadow-lg shadow-accent/30'
-                      : 'text-text-muted hover:text-white'
+                      ? 'border-accent text-accent'
+                      : 'border-transparent text-text-muted hover:text-white'
                   }`}
                 >
                   {cat.name}
