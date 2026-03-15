@@ -74,7 +74,7 @@ exports.createCheckoutSession = async (req, res) => {
       customer_email: shippingInfo.email,
       metadata: {
         orderId: order.id.toString(),
-        userId: userId.toString()
+        userId: userId ? userId.toString() : 'guest'
       }
     });
 
