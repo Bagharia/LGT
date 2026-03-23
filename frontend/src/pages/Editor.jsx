@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { productsAPI, designsAPI, ordersAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -26,6 +26,8 @@ const Editor = () => {
   const [showGrid, setShowGrid] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [previewDataUrl, setPreviewDataUrl] = useState(null);
+  const [selectedObject, setSelectedObject] = useState(null);
+  const importInputRef = useRef(null);
 
   const isTwoSided = product?.category?.hasTwoSides ?? true;
   const activeCanvas = activeSide === 'front' || !isTwoSided ? frontCanvas : backCanvas;
@@ -54,6 +56,52 @@ const Editor = () => {
   useEffect(() => {
     fetchProduct();
   }, [productId]);
+
+  // Tracker l'objet sélectionné sur le canvas actif (pour bouton supprimer mobile)
+  useEffect(() => {
+    const canvas = activeSide === 'front' || !isTwoSided ? frontCanvas : backCanvas;
+    if (!canvas) return;
+    const onSelect = () => setSelectedObject(canvas.getActiveObject());
+    const onClear = () => setSelectedObject(null);
+    canvas.on('selection:created', onSelect);
+    canvas.on('selection:updated', onSelect);
+    canvas.on('selection:cleared', onClear);
+    return () => {
+      canvas.off('selection:created', onSelect);
+      canvas.off('selection:updated', onSelect);
+      canvas.off('selection:cleared', onClear);
+    };
+  }, [activeSide, frontCanvas, backCanvas, isTwoSided]);
+
+  // Import image depuis la toolbar
+  const handleImportImage = (e) => {
+    const canvas = activeSide === 'front' || !isTwoSided ? frontCanvas : backCanvas;
+    if (!canvas) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const img = await fabric.FabricImage.fromURL(event.target.result, { crossOrigin: 'anonymous' });
+        const maxW = 240, maxH = 320;
+        const scale = Math.min(maxW / img.width, maxH / img.height, 1) * 0.5;
+        img.set({ left: 130 + (maxW - img.width * scale) / 2, top: 80 + (maxH - img.height * scale) / 2, scaleX: scale, scaleY: scale });
+        img.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
+        canvas.add(img);
+        canvas.setActiveObject(img);
+        canvas.renderAll();
+      } catch (err) { console.error(err); }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  // Supprimer l'objet sélectionné (bouton mobile)
+  const handleDeleteSelected = () => {
+    const canvas = activeSide === 'front' || !isTwoSided ? frontCanvas : backCanvas;
+    const obj = canvas?.getActiveObject();
+    if (obj) { canvas.remove(obj); canvas.discardActiveObject(); canvas.renderAll(); }
+  };
 
   // Raccourcis clavier Ctrl+Z / Ctrl+Y / Delete
   useEffect(() => {
@@ -387,12 +435,13 @@ const Editor = () => {
             </svg>
             <span>Designs</span>
           </button>
-          <button className="toggle-btn">
+          <button className="toggle-btn" onClick={() => importInputRef.current?.click()}>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
             <span>Importer</span>
           </button>
+          <input ref={importInputRef} type="file" accept="image/*" onChange={handleImportImage} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }} />
           <button
             className={`toggle-btn ${activeToolSection === null ? 'active' : ''}`}
             onClick={() => setActiveToolSection(null)}
@@ -514,6 +563,19 @@ const Editor = () => {
             </div>
           )}
         </div>
+
+        {/* Bouton supprimer flottant — visible sur mobile quand un objet est sélectionné */}
+        {selectedObject && (
+          <button
+            onClick={handleDeleteSelected}
+            className="md:hidden fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-red-500 text-white rounded-full shadow-lg text-sm font-semibold"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Supprimer
+          </button>
+        )}
 
         {/* Div Panel - Panneau de droite */}
         <div className="editor-panel-right">
