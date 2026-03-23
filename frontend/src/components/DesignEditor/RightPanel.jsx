@@ -515,7 +515,8 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, onOr
                 value={textValue}
                 onChange={(e) => changeTextValue(e.target.value)}
                 placeholder="Votre texte"
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none"
+                style={{ fontSize: '16px' }}
               />
             </div>
 

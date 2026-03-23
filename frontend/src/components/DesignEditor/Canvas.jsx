@@ -262,7 +262,7 @@ const DesignCanvas = ({ side, onCanvasReady, tshirtColor, showGrid = true, snapT
   }
 
   return (
-    <div ref={wrapperRef} className="flex justify-center items-center h-full w-full overflow-hidden">
+    <div ref={wrapperRef} className="flex justify-center items-center h-full w-full overflow-hidden" style={{ touchAction: 'none' }}>
       <div
         className="relative"
         style={{

@@ -1211,6 +1211,7 @@ body {
   .editor-container {
     flex-direction: column;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Toolbar gauche -> barre horizontale en haut */
@@ -1222,13 +1223,15 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.1);
     padding: 0;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     flex-shrink: 0;
   }
 
   .toggle-btn {
     flex-direction: column;
-    padding: 8px 12px;
-    min-width: 64px;
+    padding: 10px 14px;
+    min-width: 68px;
+    min-height: 56px;
     flex-shrink: 0;
   }
 
@@ -1238,8 +1241,8 @@ body {
   }
 
   .toggle-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     margin-bottom: 2px;
   }
 
@@ -1253,6 +1256,8 @@ body {
   .tshirt-container {
     padding: 8px;
     align-items: flex-start;
+    overflow: visible;
+    justify-content: center;
   }
 
   /* Onglets devant/dos : plus compacts */
@@ -1279,11 +1284,15 @@ body {
   .tshirt-container canvas,
   .tshirt-container .canvas-container {
     transform-origin: top center;
+    /* Empêcher le zoom navigateur sur le canvas */
+    touch-action: none;
   }
 
-  .tshirt-container {
-    overflow: hidden;
-    align-items: flex-start;
-    justify-content: center;
+  /* Inputs : forcer 16px pour éviter le zoom iOS */
+  .editor-panel-right input[type="text"],
+  .editor-panel-right input[type="number"],
+  .editor-panel-right textarea,
+  .editor-panel-right select {
+    font-size: 16px !important;
   }
 }
