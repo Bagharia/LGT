@@ -66,7 +66,7 @@ const Home = () => {
     <div className="bg-primary min-h-screen">
       {/* Loader */}
       <div className={`loader ${loaderHidden ? 'hidden' : ''}`}>
-        <div className="loader-text">LGT.</div>
+        <img src="/logo-removebg-preview.png" alt="LGT" className="loader-logo" />
         <div className="loader-bar">
           <div className="loader-progress"></div>
         </div>
@@ -139,7 +139,7 @@ const Home = () => {
       {/* Products Section */}
       <section className="products-section" id="products">
         <div className="section-header reveal">
-          <h2 className="section-title"><span className="number">01</span>Collection Vedette</h2>
+          <h2 className="section-title">Collection Vedette</h2>
           <Link to="/products" className="view-all">
             Voir Tout
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -181,7 +181,7 @@ const Home = () => {
       {/* Features Section */}
       <section className="features-section" id="features">
         <div className="section-header reveal">
-          <h2 className="section-title"><span className="number">02</span>Pourquoi Nous Choisir</h2>
+          <h2 className="section-title">Pourquoi Nous Choisir</h2>
         </div>
         <div className="features-grid">
           <div className="feature-card reveal">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import * as fabric from 'fabric';
 import { CANVAS_CONFIG } from './Canvas';
 import { useAuth } from '../../context/AuthContext';
@@ -7,6 +7,7 @@ const { PX_PER_CM, PRINT_AREA } = CANVAS_CONFIG;
 
 const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, onOrder, saving, activeToolSection, setActiveToolSection, designId }) => {
   const { isPro } = useAuth();
+  const imageInputRef = useRef(null);
   const [textValue, setTextValue] = useState('Votre texte');
   const [textColor, setTextColor] = useState('#000000');
   const [fontSize, setFontSize] = useState(40);
@@ -882,18 +883,22 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, onOr
       {activeToolSection === 'designs' && (
         <div className="p-4 space-y-4">
           <h3 className="text-lg font-bold mb-4">Vos designs</h3>
-          <label htmlFor="image-upload" className="block w-full py-12 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-cyan-500">
+          <button
+            type="button"
+            onClick={() => imageInputRef.current?.click()}
+            className="block w-full py-12 border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-cyan-500"
+          >
             <svg className="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            <span className="text-gray-600">Cliquez pour importer une image</span>
-          </label>
+            <span className="text-gray-600">Appuyer pour importer une image</span>
+          </button>
           <input
-            id="image-upload"
+            ref={imageInputRef}
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
-            className="hidden"
+            style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
           />
 
           {/* Dimensions Panel for images */}
