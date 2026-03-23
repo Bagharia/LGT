@@ -249,13 +249,6 @@ const Home = () => {
               </div>
             </div>
           </div>
-          <div className="showcase-visual reveal">
-            <img
-              src="https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=800&h=1000&fit=crop"
-              alt="Showcase"
-              className="showcase-image"
-            />
-          </div>
         </div>
       </section>
 
