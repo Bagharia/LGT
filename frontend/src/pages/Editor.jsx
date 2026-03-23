@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { productsAPI, designsAPI, ordersAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -27,7 +27,6 @@ const Editor = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [previewDataUrl, setPreviewDataUrl] = useState(null);
   const [selectedObject, setSelectedObject] = useState(null);
-  const importInputRef = useRef(null);
 
   const isTwoSided = product?.category?.hasTwoSides ?? true;
   const activeCanvas = activeSide === 'front' || !isTwoSided ? frontCanvas : backCanvas;
@@ -435,13 +434,13 @@ const Editor = () => {
             </svg>
             <span>Designs</span>
           </button>
-          <button className="toggle-btn" onClick={() => importInputRef.current?.click()}>
+          <label htmlFor="editor-import-input" className="toggle-btn cursor-pointer">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
             <span>Importer</span>
-          </button>
-          <input ref={importInputRef} type="file" accept="image/*" onChange={handleImportImage} style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }} />
+          </label>
+          <input id="editor-import-input" type="file" accept="image/*" onChange={handleImportImage} className="sr-only" />
           <button
             className={`toggle-btn ${activeToolSection === null ? 'active' : ''}`}
             onClick={() => setActiveToolSection(null)}
