@@ -271,7 +271,7 @@ const Home = () => {
       <footer className="site-footer">
         <div className="footer-grid">
           <div className="footer-brand">
-            <Link to="/" className="footer-logo">LGT<span>.</span></Link>
+            <Link to="/"><img src="/logo-removebg-preview.png" alt="LGT" className="h-12 w-auto object-contain" /></Link>
             <p>T-shirts personnalisés premium pour ceux qui osent se démarquer. Design unique, qualité exceptionnelle.</p>
             <div className="social-links">
               <a href="#" className="social-link">

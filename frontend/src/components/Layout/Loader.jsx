@@ -14,7 +14,7 @@ const Loader = ({ onLoadComplete }) => {
 
   return (
     <div className={`loader ${hidden ? 'hidden' : ''}`}>
-      <div className="loader-text">LGT.</div>
+      <img src="/logo-removebg-preview.png" alt="LGT" className="loader-logo" />
       <div className="loader-bar">
         <div className="loader-progress"></div>
       </div>
