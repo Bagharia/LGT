@@ -15,8 +15,8 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="text-2xl font-bold text-white hover:text-gray-300 transition-colors">
-            LGT
+          <Link to="/">
+            <img src="/logo-removebg-preview.png" alt="LGT" className="h-10 w-auto object-contain" />
           </Link>
 
           {/* Menu */}
