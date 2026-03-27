@@ -35,21 +35,24 @@ const Editor = () => {
   const handleTextClick = () => {
     setActiveToolSection('text');
 
-    // Ajouter du texte au canvas actif
     const canvas = activeSide === 'front' ? frontCanvas : (isTwoSided ? backCanvas : frontCanvas);
-    if (canvas) {
-      const text = new fabric.IText('Votre texte', {
-        left: 250,
-        top: 300,
-        fontSize: 40,
-        fill: '#000000',
-        fontFamily: 'Arial',
-      });
+    if (!canvas) return;
 
-      canvas.add(text);
-      canvas.setActiveObject(text);
-      canvas.renderAll();
-    }
+    // Si un texte est déjà sélectionné, ouvrir le drawer sans ajouter un nouveau
+    const active = canvas.getActiveObject();
+    if (active && active.type === 'i-text') return;
+
+    // Sinon ajouter un nouveau texte
+    const text = new fabric.IText('Votre texte', {
+      left: 250,
+      top: 300,
+      fontSize: 40,
+      fill: '#000000',
+      fontFamily: 'Arial',
+    });
+    canvas.add(text);
+    canvas.setActiveObject(text);
+    canvas.renderAll();
   };
 
   useEffect(() => {
@@ -57,11 +60,20 @@ const Editor = () => {
   }, [productId]);
 
   // Tracker l'objet sélectionné sur le canvas actif (pour bouton supprimer mobile)
+  // Sur mobile : ouvrir le drawer texte automatiquement quand un texte est sélectionné
   useEffect(() => {
     const canvas = activeSide === 'front' || !isTwoSided ? frontCanvas : backCanvas;
     if (!canvas) return;
-    const onSelect = () => setSelectedObject(canvas.getActiveObject());
-    const onClear = () => setSelectedObject(null);
+    const onSelect = () => {
+      const obj = canvas.getActiveObject();
+      setSelectedObject(obj);
+      if (obj && obj.type === 'i-text' && window.innerWidth < 768) {
+        setActiveToolSection('text');
+      }
+    };
+    const onClear = () => {
+      setSelectedObject(null);
+    };
     canvas.on('selection:created', onSelect);
     canvas.on('selection:updated', onSelect);
     canvas.on('selection:cleared', onClear);
