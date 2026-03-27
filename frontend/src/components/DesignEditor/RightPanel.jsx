@@ -497,6 +497,18 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, onOr
       {/* Text Editor Section - Shown when activeToolSection === 'text' */}
       {activeToolSection === 'text' && (
         <div className="overflow-y-auto flex-1">
+          {/* Header mobile avec bouton fermer */}
+          <div className="md:hidden flex items-center justify-between px-4 pt-3 pb-2">
+            <span className="text-sm font-semibold text-white/80">Modifier le texte</span>
+            <button
+              onClick={() => setActiveToolSection(null)}
+              className="text-white/60 hover:text-white p-1"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
           {/* Preview Text */}
           <div className="p-4 border-b border-gray-200">
             <div className="border-2 border-cyan-500 rounded-lg p-6 bg-white min-h-[100px] flex items-center justify-center">
