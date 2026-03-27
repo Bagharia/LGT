@@ -67,9 +67,6 @@ const Editor = () => {
     const onSelect = () => {
       const obj = canvas.getActiveObject();
       setSelectedObject(obj);
-      if (obj && obj.type === 'i-text' && window.innerWidth < 768) {
-        setActiveToolSection('text');
-      }
     };
     const onClear = () => {
       setSelectedObject(null);
@@ -473,6 +470,27 @@ const Editor = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
             <span>Aperçu</span>
+          </button>
+
+          {/* Couleur — mobile seulement */}
+          <button
+            className={`toggle-btn md:hidden ${activeToolSection === 'color' ? 'active' : ''}`}
+            onClick={() => setActiveToolSection(activeToolSection === 'color' ? null : 'color')}
+          >
+            <div className="w-6 h-6 rounded-full border-2 border-white/40" style={{ backgroundColor: tshirtColor }} />
+            <span>Couleur</span>
+          </button>
+
+          {/* Commander — mobile seulement */}
+          <button
+            className="toggle-btn md:hidden"
+            onClick={() => setActiveToolSection('size-quantity')}
+            style={{ color: '#00D2FF' }}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            <span>Commander</span>
           </button>
 
           <div className="flex-1"></div>
