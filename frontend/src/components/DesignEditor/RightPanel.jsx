@@ -38,11 +38,6 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, onOr
     XXL: 0
   });
 
-  const colors = [
-    '#FFFFFF', '#F5F5DC', '#000000', '#2F4F4F',
-    '#1E3A8A', '#064E3B', '#15803D', '#A3E635',
-    '#F87171', '#DC2626'
-  ];
 
   const fonts = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'Georgia', 'Verdana'];
 
@@ -904,8 +899,8 @@ const RightPanel = ({ canvas, product, tshirtColor, setTshirtColor, onSave, onOr
               </svg>
             </button>
           </div>
-          <div className="flex gap-4 flex-wrap">
-            {colors.map(color => (
+          <div className="flex gap-4">
+            {['#FFFFFF', '#000000'].map(color => (
               <button
                 key={color}
                 onClick={() => setTshirtColor(color)}
