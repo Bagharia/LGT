@@ -226,25 +226,25 @@ const Home = () => {
 
       {/* Stats Section */}
       <section className="showcase-section" id="showcase">
-        <div className="max-w-5xl mx-auto px-6 py-16 text-center reveal">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 py-16 text-center reveal">
           <h2 className="font-space-grotesk text-4xl md:text-5xl font-bold text-white mb-4">
             Conçu pour les <span className="accent">Audacieux</span>
           </h2>
           <p className="text-text-muted text-lg max-w-2xl mx-auto mb-16">
             Chaque couture raconte une histoire. Du concept à la création, nous sommes obsédés par chaque détail.
           </p>
-          <div className="grid grid-cols-3 gap-6">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
-              <div className="text-5xl font-bold text-accent mb-2">10K+</div>
-              <div className="text-text-muted text-sm uppercase tracking-widest">Clients Satisfaits</div>
+          <div className="grid grid-cols-3 gap-3 md:gap-6">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 md:p-8">
+              <div className="text-3xl md:text-5xl font-bold text-accent mb-2">10K+</div>
+              <div className="text-text-muted text-xs md:text-sm uppercase tracking-widest">Clients Satisfaits</div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
-              <div className="text-5xl font-bold text-accent mb-2">100%</div>
-              <div className="text-text-muted text-sm uppercase tracking-widest">Coton Bio</div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 md:p-8">
+              <div className="text-3xl md:text-5xl font-bold text-accent mb-2">100%</div>
+              <div className="text-text-muted text-xs md:text-sm uppercase tracking-widest">Coton Bio</div>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
-              <div className="text-5xl font-bold text-accent mb-2">48h</div>
-              <div className="text-text-muted text-sm uppercase tracking-widest">Livraison Express</div>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 md:p-8">
+              <div className="text-3xl md:text-5xl font-bold text-accent mb-2">48h</div>
+              <div className="text-text-muted text-xs md:text-sm uppercase tracking-widest">Livraison Express</div>
             </div>
           </div>
         </div>
