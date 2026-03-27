@@ -29,7 +29,7 @@ const ForgotPassword = () => {
     <div className="min-h-screen bg-primary flex items-center justify-center px-8">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <Link to="/"><img src="/logo-removebg-preview.png" alt="LGT" className="h-10 w-auto object-contain" /></Link>
+        <Link to="/"><img src="/removebg-preview.png" alt="LGT" className="h-10 w-auto object-contain" /></Link>
 
         {sent ? (
           /* État : email envoyé */

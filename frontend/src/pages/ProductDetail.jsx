@@ -487,7 +487,7 @@ const ProductDetail = () => {
       {/* Footer */}
       <footer className="border-t border-white/10 px-8 md:px-16 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <Link to="/"><img src="/logo-removebg-preview.png" alt="LGT" className="h-8 w-auto object-contain" /></Link>
+          <Link to="/"><img src="/removebg-preview.png" alt="LGT" className="h-8 w-auto object-contain" /></Link>
           <p className="text-text-muted text-sm">
             &copy; 2026 LGT. Tous droits réservés.
           </p>

@@ -66,7 +66,7 @@ const Home = () => {
     <div className="bg-primary min-h-screen">
       {/* Loader */}
       <div className={`loader ${loaderHidden ? 'hidden' : ''}`}>
-        <img src="/logo-removebg-preview.png" alt="LGT" className="loader-logo" />
+        <img src="/removebg-preview.png" alt="LGT" className="loader-logo" />
         <div className="loader-bar">
           <div className="loader-progress"></div>
         </div>
@@ -271,7 +271,7 @@ const Home = () => {
       <footer className="site-footer">
         <div className="footer-grid">
           <div className="footer-brand">
-            <Link to="/"><img src="/logo-removebg-preview.png" alt="LGT" className="h-12 w-auto object-contain" /></Link>
+            <Link to="/"><img src="/removebg-preview.png" alt="LGT" className="h-12 w-auto object-contain" /></Link>
             <p>T-shirts personnalisés premium pour ceux qui osent se démarquer. Design unique, qualité exceptionnelle.</p>
             <div className="social-links">
               <a href="#" className="social-link">

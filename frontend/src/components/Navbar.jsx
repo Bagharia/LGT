@@ -16,7 +16,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/">
-            <img src="/logo-removebg-preview.png" alt="LGT" className="h-10 w-auto object-contain" />
+            <img src="/removebg-preview.png" alt="LGT" className="h-10 w-auto object-contain" />
           </Link>
 
           {/* Menu */}
