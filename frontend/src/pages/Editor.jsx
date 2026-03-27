@@ -566,8 +566,8 @@ const Editor = () => {
           )}
         </div>
 
-        {/* Bouton supprimer flottant — visible sur mobile quand un objet est sélectionné */}
-        {selectedObject && (
+        {/* Bouton supprimer flottant — visible sur mobile quand un objet est sélectionné et drawer fermé */}
+        {selectedObject && !activeToolSection && (
           <button
             onClick={handleDeleteSelected}
             className="md:hidden fixed bottom-24 right-4 z-50 flex items-center gap-2 px-4 py-3 bg-red-500 text-white rounded-full shadow-lg text-sm font-semibold"
