@@ -1266,7 +1266,7 @@ body {
     justify-content: center;
   }
 
-  /* Onglets devant/dos : cachés sur mobile (boutons dans la toolbar) */
+  /* Onglets devant/dos : cachés sur mobile (boutons dans la toolbar à la place) */
   .tshirt-tabs {
     display: none;
   }

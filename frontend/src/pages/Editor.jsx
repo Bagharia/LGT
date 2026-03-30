@@ -549,15 +549,12 @@ const Editor = () => {
 
         {/* Div SVG T-Shirt - Centre avec canvas */}
         <div className="editor-svg-tshirt">
-          <div className="tshirt-container" style={{ position: 'relative' }}>
+          <div className="tshirt-container" style={{ position: 'relative', minHeight: 600 }}>
             {/* Canvas Devant */}
-            <div style={{
-              position: isTwoSided ? 'absolute' : 'relative',
-              top: 0, left: 0, right: 0, bottom: 0,
-              zIndex: activeSide === 'front' ? 2 : 1,
-              pointerEvents: activeSide === 'front' ? 'auto' : 'none',
-              opacity: activeSide === 'front' ? 1 : 0,
-            }}>
+            <div style={activeSide === 'front'
+              ? { position: 'relative' }
+              : { position: 'absolute', left: '-9999px', top: 0, pointerEvents: 'none' }
+            }>
               <DesignCanvas
                 side="front"
                 mockupUrl={product.mockupFrontUrl}
@@ -567,14 +564,12 @@ const Editor = () => {
               />
             </div>
 
-            {/* Canvas Dos (uniquement pour les produits recto/verso) */}
+            {/* Canvas Dos — toujours dans le DOM pour que Fabric s'initialise */}
             {isTwoSided && (
-              <div style={{
-                position: 'relative',
-                zIndex: activeSide === 'back' ? 2 : 1,
-                pointerEvents: activeSide === 'back' ? 'auto' : 'none',
-                opacity: activeSide === 'back' ? 1 : 0,
-              }}>
+              <div style={activeSide === 'back'
+                ? { position: 'relative' }
+                : { position: 'absolute', left: '-9999px', top: 0, pointerEvents: 'none' }
+              }>
                 <DesignCanvas
                   side="back"
                   mockupUrl={product.mockupBackUrl}
