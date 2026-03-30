@@ -84,7 +84,7 @@ const Home = () => {
           </div>
           <h1>
             Créez Votre<br />
-            <span className="accent">Style</span> Unique
+            <span className="accent">Style</span> Unique TEst
           </h1>
           <p>
             T-shirts, affiches, posters… Tout ce que tu imagines, on l'imprime.
