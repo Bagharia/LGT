@@ -551,7 +551,14 @@ const Editor = () => {
         <div className="editor-svg-tshirt">
           <div className="tshirt-container">
             {/* Canvas Devant */}
-            <div style={{ display: activeSide === 'front' ? 'block' : 'none' }}>
+            <div style={{
+              visibility: activeSide === 'front' ? 'visible' : 'hidden',
+              position: activeSide === 'front' ? 'relative' : 'absolute',
+              pointerEvents: activeSide === 'front' ? 'auto' : 'none',
+              width: activeSide === 'front' ? undefined : 0,
+              height: activeSide === 'front' ? undefined : 0,
+              overflow: 'hidden',
+            }}>
               <DesignCanvas
                 side="front"
                 mockupUrl={product.mockupFrontUrl}
@@ -563,7 +570,14 @@ const Editor = () => {
 
             {/* Canvas Dos (uniquement pour les produits recto/verso) */}
             {isTwoSided && (
-              <div style={{ display: activeSide === 'back' ? 'block' : 'none' }}>
+              <div style={{
+                visibility: activeSide === 'back' ? 'visible' : 'hidden',
+                position: activeSide === 'back' ? 'relative' : 'absolute',
+                pointerEvents: activeSide === 'back' ? 'auto' : 'none',
+                width: activeSide === 'back' ? undefined : 0,
+                height: activeSide === 'back' ? undefined : 0,
+                overflow: 'hidden',
+              }}>
                 <DesignCanvas
                   side="back"
                   mockupUrl={product.mockupBackUrl}
