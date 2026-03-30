@@ -1260,10 +1260,9 @@ body {
     justify-content: center;
   }
 
-  /* Onglets devant/dos : plus compacts */
+  /* Onglets devant/dos : cachés sur mobile (boutons dans la toolbar) */
   .tshirt-tabs {
-    padding: 8px 0;
-    gap: 12px;
+    display: none;
   }
 
   .tshirt-tab .tab-preview {
