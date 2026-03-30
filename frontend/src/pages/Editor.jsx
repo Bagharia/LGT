@@ -549,15 +549,14 @@ const Editor = () => {
 
         {/* Div SVG T-Shirt - Centre avec canvas */}
         <div className="editor-svg-tshirt">
-          <div className="tshirt-container">
+          <div className="tshirt-container" style={{ position: 'relative' }}>
             {/* Canvas Devant */}
             <div style={{
-              visibility: activeSide === 'front' ? 'visible' : 'hidden',
-              position: activeSide === 'front' ? 'relative' : 'absolute',
+              position: isTwoSided ? 'absolute' : 'relative',
+              top: 0, left: 0, right: 0, bottom: 0,
+              zIndex: activeSide === 'front' ? 2 : 1,
               pointerEvents: activeSide === 'front' ? 'auto' : 'none',
-              width: activeSide === 'front' ? undefined : 0,
-              height: activeSide === 'front' ? undefined : 0,
-              overflow: 'hidden',
+              opacity: activeSide === 'front' ? 1 : 0,
             }}>
               <DesignCanvas
                 side="front"
@@ -571,12 +570,10 @@ const Editor = () => {
             {/* Canvas Dos (uniquement pour les produits recto/verso) */}
             {isTwoSided && (
               <div style={{
-                visibility: activeSide === 'back' ? 'visible' : 'hidden',
-                position: activeSide === 'back' ? 'relative' : 'absolute',
+                position: 'relative',
+                zIndex: activeSide === 'back' ? 2 : 1,
                 pointerEvents: activeSide === 'back' ? 'auto' : 'none',
-                width: activeSide === 'back' ? undefined : 0,
-                height: activeSide === 'back' ? undefined : 0,
-                overflow: 'hidden',
+                opacity: activeSide === 'back' ? 1 : 0,
               }}>
                 <DesignCanvas
                   side="back"
