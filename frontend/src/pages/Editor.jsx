@@ -561,6 +561,7 @@ const Editor = () => {
                 onCanvasReady={setFrontCanvas}
                 tshirtColor={tshirtColor}
                 showGrid={showGrid}
+                isActive={activeSide === 'front'}
               />
             </div>
 
@@ -576,6 +577,7 @@ const Editor = () => {
                   onCanvasReady={setBackCanvas}
                   tshirtColor={tshirtColor}
                   showGrid={showGrid}
+                  isActive={activeSide === 'back'}
                 />
               </div>
             )}

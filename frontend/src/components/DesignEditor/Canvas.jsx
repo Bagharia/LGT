@@ -25,7 +25,7 @@ const PRINT_AREA = {
 const CANVAS_W = 500;
 const CANVAS_H = 600;
 
-const DesignCanvas = ({ side, onCanvasReady, tshirtColor, showGrid = true, snapToGrid = true }) => {
+const DesignCanvas = ({ side, onCanvasReady, tshirtColor, showGrid = true, snapToGrid = true, isActive = true }) => {
   const canvasRef = useRef(null);
   const fabricCanvasRef = useRef(null);
   const wrapperRef = useRef(null);
@@ -40,19 +40,29 @@ const DesignCanvas = ({ side, onCanvasReady, tshirtColor, showGrid = true, snapT
   // Scale responsive : observe la largeur du wrapper et scale le canvas
   useEffect(() => {
     if (!wrapperRef.current) return;
-    const observer = new ResizeObserver(entries => {
-      const entry = entries[0];
-      if (!entry) return;
-      const availableW = entry.contentRect.width;
+    const computeScale = () => {
+      const availableW = wrapperRef.current?.offsetWidth || 0;
       if (availableW > 0 && availableW < CANVAS_W) {
         setScale(availableW / CANVAS_W);
-      } else {
+      } else if (availableW >= CANVAS_W) {
         setScale(1);
       }
-    });
+    };
+    const observer = new ResizeObserver(() => computeScale());
     observer.observe(wrapperRef.current);
     return () => observer.disconnect();
   }, []);
+
+  // Quand le canvas devient actif (visible), recalculer le scale
+  useEffect(() => {
+    if (!isActive || !wrapperRef.current) return;
+    const availableW = wrapperRef.current.offsetWidth;
+    if (availableW > 0 && availableW < CANVAS_W) {
+      setScale(availableW / CANVAS_W);
+    } else if (availableW >= CANVAS_W) {
+      setScale(1);
+    }
+  }, [isActive]);
 
   // Throttle pour limiter les mises à jour
   const lastUpdate = useRef(0);
