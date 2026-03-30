@@ -56,10 +56,10 @@ const Footer = () => {
             Support
           </h4>
           <ul className="space-y-4">
-            <li><a href="#" className="footer-link">Contact</a></li>
-            <li><a href="#" className="footer-link">FAQ</a></li>
-            <li><a href="#" className="footer-link">Livraison</a></li>
-            <li><a href="#" className="footer-link">Retours</a></li>
+            <li><Link to="/coming-soon" className="footer-link">Contact</Link></li>
+            <li><Link to="/coming-soon" className="footer-link">FAQ</Link></li>
+            <li><Link to="/coming-soon" className="footer-link">Livraison</Link></li>
+            <li><Link to="/coming-soon" className="footer-link">Retours</Link></li>
           </ul>
         </div>
       </div>

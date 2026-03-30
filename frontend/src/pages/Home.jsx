@@ -307,10 +307,10 @@ const Home = () => {
           <div className="footer-column">
             <h4>Support</h4>
             <ul>
-              <li><a href="#">Contact</a></li>
-              <li><a href="#">FAQ</a></li>
-              <li><a href="#">Livraison</a></li>
-              <li><a href="#">Retours</a></li>
+              <li><Link to="/coming-soon">Contact</Link></li>
+              <li><Link to="/coming-soon">FAQ</Link></li>
+              <li><Link to="/coming-soon">Livraison</Link></li>
+              <li><Link to="/coming-soon">Retours</Link></li>
             </ul>
           </div>
         </div>
